@@ -1,0 +1,368 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Customer Management | SmartBank Admin</title>
+
+    <!-- Apply saved theme before the page renders -->
+    <script>
+        (function () {
+            try {
+                const savedTheme = localStorage.getItem("adminTheme");
+
+                const isDark = savedTheme !== null
+                    ? savedTheme === "dark"
+                    : localStorage.getItem("smartbank_darkMode") === "true";
+
+                document.documentElement.classList.toggle("dark-mode", isDark);
+            } catch (error) {
+                // Continue with the default light theme.
+            }
+        })();
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f3f6fb;
+            color: #1e293b;
+            padding: 30px;
+            transition: background 0.25s ease, color 0.25s ease;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            color: #1e293b;
+        }
+
+        .subtitle {
+            color: #64748b;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            background: #123b70;
+            color: white;
+            padding: 11px 18px;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: #0b2a52;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 14px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+            border: 1px solid transparent;
+            transition: background 0.25s ease, border-color 0.25s ease;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        .search-form input {
+            flex: 1;
+            min-width: 0;
+            padding: 12px;
+            border: 1px solid #dbe3ef;
+            border-radius: 8px;
+            outline: none;
+            background: #ffffff;
+            color: #1e293b;
+        }
+
+        .search-form input:focus {
+            border-color: #1764c0;
+            box-shadow: 0 0 0 3px rgba(23, 100, 192, 0.12);
+        }
+
+        .search-form button {
+            background: #1764c0;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .search-form button:hover {
+            background: #124f9a;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 1px solid #edf0f5;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #475569;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        td {
+            font-size: 14px;
+            color: #334155;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .role {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            background: #e0ecff;
+            color: #1d4ed8;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 30px;
+            color: #64748b;
+        }
+
+        /* =========================
+           DARK MODE
+           Controlled by Admin Settings
+           ========================= */
+
+        html.dark-mode body {
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        html.dark-mode h1 {
+            color: #f1f5f9;
+        }
+
+        html.dark-mode .subtitle {
+            color: #94a3b8;
+        }
+
+        html.dark-mode .card {
+            background: #1e293b;
+            border-color: #334155;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+        }
+
+        html.dark-mode .search-form input {
+            background: #111c2d;
+            color: #e2e8f0;
+            border-color: #475569;
+        }
+
+        html.dark-mode .search-form input::placeholder {
+            color: #94a3b8;
+        }
+
+        html.dark-mode .search-form input:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+        }
+
+        html.dark-mode th {
+            background: #111c2d;
+            color: #cbd5e1;
+            border-bottom-color: #334155;
+        }
+
+        html.dark-mode td {
+            color: #e2e8f0;
+            border-bottom-color: #334155;
+        }
+
+        html.dark-mode tbody tr:hover {
+            background: #263449;
+        }
+
+        html.dark-mode .role {
+            background: #1e3a5f;
+            color: #93c5fd;
+        }
+
+        html.dark-mode .empty {
+            color: #94a3b8;
+        }
+
+        /* Responsive layout */
+
+        @media (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 23px;
+            }
+
+            .search-form {
+                flex-direction: column;
+            }
+
+            .search-form button {
+                width: 100%;
+            }
+
+            .back-btn {
+                display: inline-block;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <div>
+        <h1>Customer Management</h1>
+        <p class="subtitle">View and search SmartBank users.</p>
+    </div>
+
+    <a th:href="@{/admin/dashboard}" class="back-btn">
+        Back to Dashboard
+    </a>
+</div>
+
+<div class="card">
+
+    <form th:action="@{/admin/customers}"
+          method="get"
+          class="search-form">
+
+        <input type="text"
+               name="search"
+               placeholder="Search by customer name or email"
+               th:value="${search}">
+
+        <button type="submit">Search</button>
+    </form>
+
+    <div class="table-container">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Customer Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Registered On</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="customer : ${customers}">
+                <td th:text="${customer.id}">1</td>
+
+                <td th:text="${customer.fullName}">
+                    Customer Name
+                </td>
+
+                <td th:text="${customer.email}">
+                    customer@example.com
+                </td>
+
+                <td>
+                    <span class="role"
+                          th:text="${customer.role}">
+                        USER
+                    </span>
+                </td>
+
+                <td th:text="${customer.createdAt != null
+                    ? #temporals.format(customer.createdAt, 'dd-MM-yyyy HH:mm')
+                    : 'N/A'}">
+                    16-10-2026
+                </td>
+            </tr>
+
+            <tr th:if="${#lists.isEmpty(customers)}">
+                <td colspan="5" class="empty">
+                    No customers found.
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- Update theme if changed in another open tab -->
+<script>
+    function applySavedAdminTheme() {
+        try {
+            const savedTheme = localStorage.getItem("adminTheme");
+
+            const isDark = savedTheme !== null
+                ? savedTheme === "dark"
+                : localStorage.getItem("smartbank_darkMode") === "true";
+
+            document.documentElement.classList.toggle("dark-mode", isDark);
+        } catch (error) {
+            // Keep the current theme if storage is unavailable.
+        }
+    }
+
+    window.addEventListener("storage", function (event) {
+        if (
+            event.key === "adminTheme" ||
+            event.key === "smartbank_darkMode" ||
+            event.key === null
+        ) {
+            applySavedAdminTheme();
+        }
+    });
+
+    window.addEventListener("pageshow", applySavedAdminTheme);
+</script>
+
+</body>
+</html>

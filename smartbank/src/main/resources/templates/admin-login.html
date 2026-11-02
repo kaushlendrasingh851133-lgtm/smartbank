@@ -1,0 +1,104 @@
+<!DOCTYPE html><html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBank Admin Login</title><style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #eaf2ff, #d8e7ff);
+    }
+
+    .login-box {
+        width: 360px;
+        max-width: 92%;
+        padding: 35px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 12px 35px rgba(0, 40, 100, 0.15);
+    }
+
+    h1 {
+        margin: 0;
+        text-align: center;
+        color: #123b75;
+    }
+
+    p {
+        text-align: center;
+        color: #64748b;
+        margin-bottom: 28px;
+    }
+
+    label {
+        display: block;
+        margin: 15px 0 7px;
+        font-weight: bold;
+        color: #26364b;
+    }
+
+    input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        outline: none;
+    }
+
+    input:focus {
+        border-color: #2563eb;
+    }
+
+    button {
+        width: 100%;
+        margin-top: 24px;
+        padding: 13px;
+        border: none;
+        border-radius: 8px;
+        background: #174ea6;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #103b80;
+    }
+
+    .back {
+        display: block;
+        text-align: center;
+        margin-top: 20px;
+        color: #174ea6;
+        text-decoration: none;
+    }
+</style>
+
+</head><body>
+<div class="login-box">
+    <h1>SmartBank</h1>
+    <p>Administrator Portal</p><form th:action="@{/admin/login}" method="post">
+    <label for="username">Admin Username</label>
+    <input id="username" name="username"
+           type="text" required autocomplete="username">
+
+    <label for="password">Admin Password</label>
+    <input id="password" name="password"
+           type="password" required autocomplete="current-password">
+
+    <button type="submit">Admin Login</button>
+</form>
+
+    <a class="back" href="/login">Customer Login</a>
+
+</div>
+</body>
+</html>

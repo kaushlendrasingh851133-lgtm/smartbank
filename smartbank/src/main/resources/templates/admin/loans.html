@@ -1,0 +1,505 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SmartBank | Loan Management</title>
+
+    <!-- Load saved admin theme -->
+    <script>
+        (function () {
+            const theme = localStorage.getItem("adminTheme");
+            const isDark = theme !== null
+                ? theme === "dark"
+                : localStorage.getItem("smartbank_darkMode") === "true";
+
+            document.documentElement.classList.toggle("dark-mode", isDark);
+        })();
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+            transition: background 0.25s ease, color 0.25s ease;
+        }
+
+        .container {
+            max-width: 1250px;
+            margin: auto;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        h1 {
+            color: #123b70;
+            margin-bottom: 8px;
+        }
+
+        .description {
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+
+        .back {
+            display: inline-block;
+            padding: 10px 14px;
+            border-radius: 7px;
+            background: #173b76;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back:hover {
+            background: #2454a0;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 15px;
+            margin: 22px 0;
+        }
+
+        .stat,
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 18px #0000000a;
+            transition: background 0.25s ease, color 0.25s ease;
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 27px;
+            margin-top: 10px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 950px;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+
+        th {
+            background: #eff6ff;
+            color: #1e293b;
+            white-space: nowrap;
+        }
+
+        input {
+            padding: 9px;
+            width: 145px;
+            max-width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            margin-bottom: 6px;
+            background: white;
+            color: #1e293b;
+            font-size: 13px;
+        }
+
+        input:focus {
+            outline: 2px solid #93c5fd;
+            outline-offset: 1px;
+        }
+
+        button {
+            padding: 8px 12px;
+            border: 0;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            margin: 3px 0;
+            font-size: 13px;
+        }
+
+        .approve {
+            background: #15803d;
+        }
+
+        .approve:hover {
+            background: #166534;
+        }
+
+        .reject {
+            background: #b91c1c;
+        }
+
+        .reject:hover {
+            background: #991b1b;
+        }
+
+        .message {
+            padding: 12px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+        }
+
+        .success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-approved {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .remark {
+            overflow-wrap: anywhere;
+            min-width: 100px;
+            max-width: 200px;
+        }
+
+        .empty-row {
+            text-align: center;
+            padding: 24px;
+        }
+
+        .footer {
+            margin-top: 20px;
+        }
+
+        /* Dark Mode */
+        html.dark-mode body {
+            background: #0f172a;
+            color: #e5e7eb;
+        }
+
+        html.dark-mode h1 {
+            color: #93c5fd;
+        }
+
+        html.dark-mode .description {
+            color: #aab6ca;
+        }
+
+        html.dark-mode .stat,
+        html.dark-mode .panel {
+            background: #1e293b;
+            color: #e5e7eb;
+            border: 1px solid #334155;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+        }
+
+        html.dark-mode th {
+            background: #273449;
+            color: #f1f5f9;
+        }
+
+        html.dark-mode td {
+            border-bottom-color: #334155;
+        }
+
+        html.dark-mode input {
+            background: #0f172a;
+            color: #e5e7eb;
+            border-color: #475569;
+        }
+
+        html.dark-mode input::placeholder {
+            color: #94a3b8;
+        }
+
+        html.dark-mode .back {
+            background: #315b9b;
+            color: white;
+        }
+
+        html.dark-mode .back:hover {
+            background: #416fb5;
+        }
+
+        html.dark-mode .success {
+            background: #14532d;
+            color: #bbf7d0;
+        }
+
+        html.dark-mode .error {
+            background: #7f1d1d;
+            color: #fecaca;
+        }
+
+        html.dark-mode .status-pending {
+            background: #713f12;
+            color: #fde68a;
+        }
+
+        html.dark-mode .status-approved {
+            background: #14532d;
+            color: #bbf7d0;
+        }
+
+        html.dark-mode .status-rejected {
+            background: #7f1d1d;
+            color: #fecaca;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                padding: 16px;
+            }
+
+            .stats {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .stat,
+            .panel {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 650px) {
+            body {
+                padding: 12px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar {
+                align-items: flex-start;
+            }
+
+            .topbar .back {
+                width: 100%;
+                text-align: center;
+            }
+
+            .stat strong {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <div class="topbar">
+        <div>
+            <h1>Loan Management</h1>
+            <p class="description">
+                Review customer loan applications and update their status.
+            </p>
+        </div>
+
+        <a class="back" th:href="@{/admin/dashboard}">
+            ← Admin Dashboard
+        </a>
+    </div>
+
+    <!-- Success and Error Messages -->
+    <div th:if="${success}"
+         class="message success"
+         th:text="${success}">
+    </div>
+
+    <div th:if="${error}"
+         class="message error"
+         th:text="${error}">
+    </div>
+
+    <!-- Loan Statistics -->
+    <div class="stats">
+        <div class="stat">
+            Pending Applications
+            <strong th:text="${pendingCount}">0</strong>
+        </div>
+
+        <div class="stat">
+            Approved Applications
+            <strong th:text="${approvedCount}">0</strong>
+        </div>
+
+        <div class="stat">
+            Rejected Applications
+            <strong th:text="${rejectedCount}">0</strong>
+        </div>
+    </div>
+
+    <!-- Loan Applications Table -->
+    <div class="panel">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Email</th>
+                    <th>Loan Type</th>
+                    <th>Amount</th>
+                    <th>Monthly Income</th>
+                    <th>Duration</th>
+                    <th>Applied At</th>
+                    <th>Status</th>
+                    <th>Admin Remark</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="loan : ${loans}">
+                    <td th:text="${loan.id}"></td>
+
+                    <td th:text="${loan.user.fullName}"></td>
+
+                    <td th:text="${loan.user.email}"></td>
+
+                    <td th:text="${loan.loanType}"></td>
+
+                    <td th:text="${loan.loanAmount}"></td>
+
+                    <td th:text="${loan.monthlyIncome}"></td>
+
+                    <td th:text="${loan.durationMonths + ' months'}"></td>
+
+                    <td th:text="${loan.appliedAt != null ? #temporals.format(loan.appliedAt, 'dd-MM-yyyy HH:mm') : '-'}"></td>
+
+                    <td>
+                        <span class="status"
+                              th:classappend="${loan.status.name() == 'PENDING' ? ' status-pending' : (loan.status.name() == 'APPROVED' ? ' status-approved' : (loan.status.name() == 'REJECTED' ? ' status-rejected' : ''))}"
+                              th:text="${loan.status}">
+                            PENDING
+                        </span>
+                    </td>
+
+                    <td>
+                        <div class="remark"
+                             th:text="${loan.adminRemark != null ? loan.adminRemark : '-'}">
+                        </div>
+                    </td>
+
+                    <td>
+                        <div th:if="${loan.status.name() == 'PENDING'}">
+
+                            <!-- Approve Loan -->
+                            <form th:action="@{/admin/loans/{id}/approve(id=${loan.id})}"
+                                  method="post">
+
+                                <input type="text"
+                                       name="adminRemark"
+                                       placeholder="Optional remark"
+                                       maxlength="500"
+                                       aria-label="Approval remark">
+
+                                <button class="approve" type="submit">
+                                    Approve
+                                </button>
+                            </form>
+
+                            <!-- Reject Loan -->
+                            <form th:action="@{/admin/loans/{id}/reject(id=${loan.id})}"
+                                  method="post">
+
+                                <input type="text"
+                                       name="adminRemark"
+                                       placeholder="Reason for rejection"
+                                       maxlength="500"
+                                       aria-label="Rejection reason">
+
+                                <button class="reject" type="submit">
+                                    Reject
+                                </button>
+                            </form>
+
+                        </div>
+
+                        <span th:if="${loan.status.name() != 'PENDING'}">
+                            Reviewed
+                        </span>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(loans)}">
+                    <td colspan="11" class="empty-row">
+                        No loan applications found.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <a class="back" th:href="@{/admin/dashboard}">
+                ← Back to Admin Dashboard
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<!-- Update theme if changed in another browser tab -->
+<script>
+    window.addEventListener("storage", function (event) {
+        if (event.key === "adminTheme" ||
+            event.key === "smartbank_darkMode") {
+
+            const theme = localStorage.getItem("adminTheme");
+            const isDark = theme !== null
+                ? theme === "dark"
+                : localStorage.getItem("smartbank_darkMode") === "true";
+
+            document.documentElement.classList.toggle("dark-mode", isDark);
+        }
+    });
+</script>
+
+</body>
+</html>

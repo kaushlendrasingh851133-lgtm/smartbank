@@ -1,0 +1,717 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports & Analytics | SmartBank</title>
+
+    <!-- Apply saved Admin Appearance Setting -->
+    <script>
+        (function () {
+            try {
+                const savedTheme = localStorage.getItem("adminTheme");
+
+                const isDark = savedTheme !== null
+                    ? savedTheme === "dark"
+                    : localStorage.getItem("smartbank_darkMode") === "true";
+
+                document.documentElement.classList.toggle("dark-mode", isDark);
+            } catch (error) {
+                // Keep the default light theme.
+            }
+        })();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #172033;
+            transition: background 0.25s ease, color 0.25s ease;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 220px;
+            height: 100vh;
+            padding: 25px 16px;
+            background: #10213b;
+            color: white;
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        .brand {
+            font-size: 23px;
+            font-weight: bold;
+            margin-bottom: 35px;
+        }
+
+        .sidebar a {
+            display: block;
+            color: #dce5f4;
+            text-decoration: none;
+            padding: 13px 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: #24466f;
+            color: white;
+        }
+
+        .main {
+            margin-left: 220px;
+            padding: 28px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            font-size: 27px;
+            margin: 0 0 7px;
+            color: #172033;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .back-btn {
+            background: #10213b;
+            color: white;
+            text-decoration: none;
+            padding: 11px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .back-btn:hover {
+            background: #24466f;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card,
+        .panel {
+            background: white;
+            border-radius: 13px;
+            padding: 22px;
+            box-shadow: 0 3px 14px rgba(20, 40, 70, 0.06);
+            border: 1px solid transparent;
+            transition: background 0.25s ease, border-color 0.25s ease;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .stat-value {
+            font-size: 30px;
+            font-weight: bold;
+            color: #172033;
+            overflow-wrap: anywhere;
+        }
+
+        .section-title {
+            font-size: 18px;
+            margin: 0 0 18px;
+            color: #172033;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .status-card {
+            background: white;
+            border: 1px solid #e5eaf2;
+            border-radius: 10px;
+            padding: 17px;
+            transition: background 0.25s ease, border-color 0.25s ease;
+        }
+
+        .status-card span {
+            display: block;
+            color: #718096;
+            font-size: 13px;
+            margin-bottom: 9px;
+        }
+
+        .status-card strong {
+            font-size: 23px;
+            color: #172033;
+        }
+
+        .charts {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .chart-area {
+            position: relative;
+            height: 290px;
+            width: 100%;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .empty-message {
+            display: none;
+            color: #718096;
+            font-size: 14px;
+            text-align: center;
+            padding-top: 15px;
+        }
+
+        /* =========================
+           DARK MODE
+           Controlled by Admin Settings
+           ========================= */
+
+        html.dark-mode body {
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        html.dark-mode .sidebar {
+            background: #020617;
+            border-right: 1px solid #263449;
+        }
+
+        html.dark-mode .sidebar a {
+            color: #cbd5e1;
+        }
+
+        html.dark-mode .sidebar a:hover,
+        html.dark-mode .sidebar a.active {
+            background: #1e3a5f;
+            color: #ffffff;
+        }
+
+        html.dark-mode h1,
+        html.dark-mode .section-title,
+        html.dark-mode .stat-value,
+        html.dark-mode .status-card strong {
+            color: #f1f5f9;
+        }
+
+        html.dark-mode .subtitle,
+        html.dark-mode .stat-label,
+        html.dark-mode .status-card span,
+        html.dark-mode .empty-message {
+            color: #94a3b8;
+        }
+
+        html.dark-mode .stat-card,
+        html.dark-mode .panel {
+            background: #1e293b;
+            border-color: #334155;
+            box-shadow: 0 3px 14px rgba(0, 0, 0, 0.15);
+        }
+
+        html.dark-mode .status-card {
+            background: #111c2d;
+            border-color: #334155;
+        }
+
+        html.dark-mode .back-btn {
+            background: #1e3a5f;
+        }
+
+        html.dark-mode .back-btn:hover {
+            background: #294b75;
+        }
+
+        @media (max-width: 1000px) {
+            .stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .charts {
+                grid-template-columns: 1fr;
+            }
+
+            .full-width {
+                grid-column: auto;
+            }
+        }
+
+        @media (max-width: 650px) {
+            .sidebar {
+                position: static;
+                width: 100%;
+                height: auto;
+                padding: 15px;
+            }
+
+            .brand {
+                margin-bottom: 12px;
+            }
+
+            .sidebar a {
+                display: inline-block;
+                margin: 3px;
+                padding: 9px;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 17px;
+            }
+
+            .stats,
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 23px;
+            }
+
+            .stat-value {
+                font-size: 26px;
+            }
+
+            .chart-area {
+                height: 260px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+    <div class="brand">SmartBank</div>
+
+    <a th:href="@{/admin/dashboard}">Dashboard</a>
+    <a th:href="@{/admin/customers}">Customers</a>
+    <a th:href="@{/admin/accounts}">Account Management</a>
+    <a th:href="@{/admin/transactions}">Transaction Monitoring</a>
+    <a th:href="@{/admin/reports-analytics}" class="active">
+        Reports &amp; Analytics
+    </a>
+</aside>
+
+<main class="main">
+
+    <div class="topbar">
+        <div>
+            <h1>Reports &amp; Analytics</h1>
+            <div class="subtitle">
+                Overview of actual SmartBank database records
+            </div>
+        </div>
+
+        <a class="back-btn" th:href="@{/admin/dashboard}">
+            Back to Dashboard
+        </a>
+    </div>
+
+    <section class="stats">
+        <div class="stat-card">
+            <div class="stat-label">Total Customers</div>
+            <div class="stat-value" th:text="${totalCustomers}">0</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Total Accounts</div>
+            <div class="stat-value" th:text="${totalAccounts}">0</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Total Transactions</div>
+            <div class="stat-value" th:text="${totalTransactions}">0</div>
+        </div>
+    </section>
+
+    <section class="panel" style="margin-bottom: 24px;">
+        <h2 class="section-title">Transaction Status</h2>
+
+        <div class="status-grid" style="margin-bottom: 0;">
+            <div class="status-card">
+                <span>Successful</span>
+                <strong th:text="${successfulTransactions}">0</strong>
+            </div>
+
+            <div class="status-card">
+                <span>Failed</span>
+                <strong th:text="${failedTransactions}">0</strong>
+            </div>
+
+            <div class="status-card">
+                <span>Pending</span>
+                <strong th:text="${pendingTransactions}">0</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="panel" style="margin-bottom: 24px;">
+        <h2 class="section-title">Account Verification</h2>
+
+        <div class="status-grid" style="margin-bottom: 0;">
+            <div class="status-card">
+                <span>Verified Accounts</span>
+                <strong th:text="${verifiedAccounts}">0</strong>
+            </div>
+
+            <div class="status-card">
+                <span>Pending Verification</span>
+                <strong th:text="${pendingAccounts}">0</strong>
+            </div>
+
+            <div class="status-card">
+                <span>Rejected Accounts</span>
+                <strong th:text="${rejectedAccounts}">0</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="charts">
+
+        <div class="panel">
+            <h2 class="section-title">Monthly Transactions</h2>
+            <div class="chart-area">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+            <div class="empty-message" id="monthlyEmpty">
+                No transaction records for this period.
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2 class="section-title">Transaction Types</h2>
+            <div class="chart-area">
+                <canvas id="typeChart"></canvas>
+            </div>
+            <div class="empty-message" id="typeEmpty">
+                No transactions recorded yet.
+            </div>
+        </div>
+
+        <div class="panel full-width">
+            <h2 class="section-title">Account Verification Overview</h2>
+            <div class="chart-area">
+                <canvas id="verificationChart"></canvas>
+            </div>
+            <div class="empty-message" id="verificationEmpty">
+                No accounts recorded yet.
+            </div>
+        </div>
+
+    </section>
+
+</main>
+
+<script th:inline="javascript">
+    const monthlyLabels = /*[[${monthlyLabels}]]*/ [];
+    const monthlyValues = /*[[${monthlyValues}]]*/ [];
+
+    const typeLabels = /*[[${typeLabels}]]*/ [];
+    const typeValues = /*[[${typeValues}]]*/ [];
+
+    const verificationLabels = [
+        "Verified",
+        "Pending",
+        "Rejected"
+    ];
+
+    const verificationValues = [
+        /*[[${verifiedAccounts}]]*/ 0,
+        /*[[${pendingAccounts}]]*/ 0,
+        /*[[${rejectedAccounts}]]*/ 0
+    ];
+
+    function showEmptyMessage(canvasId, messageId, values) {
+        const total = values.reduce(
+            (sum, value) => sum + Number(value || 0), 0
+        );
+
+        if (total === 0) {
+            document.getElementById(canvasId).style.display = "none";
+            document.getElementById(messageId).style.display = "block";
+        }
+    }
+
+    showEmptyMessage("monthlyChart", "monthlyEmpty", monthlyValues);
+    showEmptyMessage("typeChart", "typeEmpty", typeValues);
+    showEmptyMessage(
+        "verificationChart",
+        "verificationEmpty",
+        verificationValues
+    );
+
+    let monthlyChart = null;
+    let typeChart = null;
+    let verificationChart = null;
+
+    function isDarkMode() {
+        return document.documentElement.classList.contains("dark-mode");
+    }
+
+    function getChartTheme() {
+        const dark = isDarkMode();
+
+        return {
+            text: dark ? "#cbd5e1" : "#475569",
+            grid: dark ? "#334155" : "#e2e8f0"
+        };
+    }
+
+    function updateChartTheme(chart) {
+        if (!chart) {
+            return;
+        }
+
+        const theme = getChartTheme();
+
+        if (chart.options.scales) {
+            Object.values(chart.options.scales).forEach(function (scale) {
+                if (scale.ticks) {
+                    scale.ticks.color = theme.text;
+                }
+
+                if (scale.grid) {
+                    scale.grid.color = theme.grid;
+                }
+
+                if (scale.title) {
+                    scale.title.color = theme.text;
+                }
+            });
+        }
+
+        if (chart.options.plugins &&
+            chart.options.plugins.legend &&
+            chart.options.plugins.legend.labels) {
+            chart.options.plugins.legend.labels.color = theme.text;
+        }
+
+        chart.update("none");
+    }
+
+    function updateAllChartThemes() {
+        updateChartTheme(monthlyChart);
+        updateChartTheme(typeChart);
+        updateChartTheme(verificationChart);
+    }
+
+    if (typeof Chart !== "undefined") {
+        const initialTheme = getChartTheme();
+
+        Chart.defaults.color = initialTheme.text;
+        Chart.defaults.borderColor = initialTheme.grid;
+
+        monthlyChart = new Chart(
+            document.getElementById("monthlyChart"),
+            {
+                type: "bar",
+                data: {
+                    labels: monthlyLabels,
+                    datasets: [{
+                        label: "Transactions",
+                        data: monthlyValues,
+                        backgroundColor: "#3978d4",
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: initialTheme.text
+                            },
+                            grid: {
+                                color: initialTheme.grid
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0,
+                                color: initialTheme.text
+                            },
+                            grid: {
+                                color: initialTheme.grid
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: initialTheme.text
+                            }
+                        }
+                    }
+                }
+            }
+        );
+
+        typeChart = new Chart(
+            document.getElementById("typeChart"),
+            {
+                type: "doughnut",
+                data: {
+                    labels: typeLabels,
+                    datasets: [{
+                        data: typeValues,
+                        backgroundColor: [
+                            "#3978d4",
+                            "#19a974",
+                            "#f0a33a",
+                            "#8b5cf6",
+                            "#e05252",
+                            "#14b8a6"
+                        ],
+                        borderColor: isDarkMode() ? "#1e293b" : "#ffffff",
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: "bottom",
+                            labels: {
+                                color: initialTheme.text
+                            }
+                        }
+                    }
+                }
+            }
+        );
+
+        verificationChart = new Chart(
+            document.getElementById("verificationChart"),
+            {
+                type: "pie",
+                data: {
+                    labels: verificationLabels,
+                    datasets: [{
+                        data: verificationValues,
+                        backgroundColor: [
+                            "#19a974",
+                            "#f0a33a",
+                            "#e05252"
+                        ],
+                        borderColor: isDarkMode() ? "#1e293b" : "#ffffff",
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: "bottom",
+                            labels: {
+                                color: initialTheme.text
+                            }
+                        }
+                    }
+                }
+            }
+        );
+    } else {
+        document.getElementById("monthlyChart").style.display = "none";
+        document.getElementById("typeChart").style.display = "none";
+        document.getElementById("verificationChart").style.display = "none";
+
+        document.getElementById("monthlyEmpty").textContent =
+            "Chart library could not load.";
+
+        document.getElementById("typeEmpty").textContent =
+            "Chart library could not load.";
+
+        document.getElementById("verificationEmpty").textContent =
+            "Chart library could not load.";
+
+        document.getElementById("monthlyEmpty").style.display = "block";
+        document.getElementById("typeEmpty").style.display = "block";
+        document.getElementById("verificationEmpty").style.display = "block";
+    }
+
+    function applySavedAdminTheme() {
+        try {
+            const savedTheme = localStorage.getItem("adminTheme");
+
+            const dark = savedTheme !== null
+                ? savedTheme === "dark"
+                : localStorage.getItem("smartbank_darkMode") === "true";
+
+            document.documentElement.classList.toggle("dark-mode", dark);
+
+            if (typeof Chart !== "undefined") {
+                const theme = getChartTheme();
+
+                Chart.defaults.color = theme.text;
+                Chart.defaults.borderColor = theme.grid;
+
+                [typeChart, verificationChart].forEach(function (chart) {
+                    if (chart) {
+                        chart.data.datasets.forEach(function (dataset) {
+                            dataset.borderColor = dark ? "#1e293b" : "#ffffff";
+                        });
+                    }
+                });
+
+                updateAllChartThemes();
+            }
+        } catch (error) {
+            // Keep the current theme if localStorage is unavailable.
+        }
+    }
+
+    window.addEventListener("storage", function (event) {
+        if (
+            event.key === "adminTheme" ||
+            event.key === "smartbank_darkMode" ||
+            event.key === null
+        ) {
+            applySavedAdminTheme();
+        }
+    });
+
+    window.addEventListener("pageshow", applySavedAdminTheme);
+</script>
+
+</body>
+</html>

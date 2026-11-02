@@ -1,0 +1,295 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help & Support | SmartBank</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: Arial, sans-serif;
+            background: #f3f6fb;
+            color: #172033;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .topbar h1 {
+            margin: 0;
+            font-size: 27px;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: white;
+            background: #1d4ed8;
+            padding: 10px 16px;
+            border-radius: 8px;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            margin-bottom: 24px;
+            border-radius: 14px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 21px;
+        }
+
+        label {
+            display: block;
+            margin: 16px 0 7px;
+            font-weight: 600;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font: inherit;
+            background: white;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .submit-btn {
+            margin-top: 18px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #1d4ed8;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover, .back-btn:hover {
+            background: #1e40af;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .request {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 18px;
+            margin-top: 16px;
+            overflow-wrap: anywhere;
+        }
+
+        .request h3 {
+            margin: 0 0 10px;
+        }
+
+        .meta {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            background: #fef3c7;
+            color: #92400e;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .replied {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .reply {
+            margin-top: 14px;
+            padding: 14px;
+            background: #eff6ff;
+            border-left: 4px solid #2563eb;
+            border-radius: 6px;
+            white-space: pre-wrap;
+        }
+
+        .request-text {
+            white-space: pre-wrap;
+        }
+
+        .empty {
+            color: #64748b;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 14px;
+            }
+
+            .card {
+                padding: 17px;
+            }
+
+            .topbar h1 {
+                font-size: 23px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <div class="topbar">
+        <h1>❔ Help & Support</h1>
+        <a th:href="@{/dashboard}" class="back-btn">
+            ← Dashboard
+        </a>
+    </div>
+
+    <div class="card">
+        <h2>Submit a Help Request</h2>
+        <p>Describe your issue. Our admin will review your request and reply here.</p>
+
+        <div th:if="${successMessage}"
+             class="message success"
+             th:text="${successMessage}">
+        </div>
+
+        <div th:if="${errorMessage}"
+             class="message error"
+             th:text="${errorMessage}">
+        </div>
+
+        <form th:action="@{/help/submit}"
+              th:object="${helpRequest}"
+              method="post">
+
+            <label for="category">Issue Category</label>
+            <select id="category" th:field="*{category}" required>
+                <option value="">Select category</option>
+                <option value="Account">Account Issue</option>
+                <option value="Transaction">Transaction Issue</option>
+                <option value="Loan">Loan Related</option>
+                <option value="Fixed Deposit">Fixed Deposit</option>
+                <option value="Login">Login Problem</option>
+                <option value="Other">Other</option>
+            </select>
+
+            <label for="subject">Subject</label>
+            <input id="subject"
+                   type="text"
+                   th:field="*{subject}"
+                   maxlength="255"
+                   placeholder="Enter issue subject"
+                   required>
+
+            <label for="message">Describe Your Issue</label>
+            <textarea id="message"
+                      th:field="*{message}"
+                      maxlength="2000"
+                      placeholder="Explain your problem here..."
+                      required></textarea>
+
+            <button type="submit" class="submit-btn">
+                Submit Request
+            </button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>My Help Requests</h2>
+
+        <div th:if="${#lists.isEmpty(helpRequests)}" class="empty">
+            You have not submitted any help requests yet.
+        </div>
+
+        <div th:each="request : ${helpRequests}" class="request">
+
+            <h3 th:text="${request.subject}">Issue Subject</h3>
+
+            <p>
+                <strong>Category:</strong>
+                <span th:text="${request.category}"></span>
+            </p>
+
+            <p class="request-text"
+               th:text="${request.message}">
+            </p>
+
+            <p class="meta">
+                Submitted:
+                <span th:text="${#temporals.format(
+                    request.createdAt, 'dd-MM-yyyy hh:mm a')}"></span>
+            </p>
+
+            <p>
+                <strong>Status:</strong>
+                <span class="status"
+                      th:classappend="${request.status == 'REPLIED'} ? ' replied' : ''"
+                      th:text="${request.status}">
+                </span>
+            </p>
+
+            <div th:if="${request.adminReply != null
+                         and !#strings.isEmpty(request.adminReply)}"
+                 class="reply">
+
+                <strong>Admin Reply</strong>
+                <p th:text="${request.adminReply}"></p>
+
+                <p class="meta"
+                   th:if="${request.repliedAt != null}">
+                    Replied:
+                    <span th:text="${#temporals.format(
+                        request.repliedAt, 'dd-MM-yyyy hh:mm a')}"></span>
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

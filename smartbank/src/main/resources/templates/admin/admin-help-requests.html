@@ -1,0 +1,302 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Help Requests | SmartBank Admin</title>
+
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem("adminTheme");
+            const oldPreference = localStorage.getItem("smartbank_darkMode");
+
+            const isDark = savedTheme !== null
+                ? savedTheme === "dark"
+                : oldPreference === "true";
+
+            if (isDark) {
+                document.documentElement.classList.add("dark-mode");
+            }
+        })();
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #172033;
+        }
+
+        .container {
+            max-width: 1150px;
+            margin: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 27px;
+        }
+
+        .back-btn, .reply-btn {
+            display: inline-block;
+            border: none;
+            border-radius: 7px;
+            padding: 11px 16px;
+            background: #1d4ed8;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 3px 14px rgba(0, 0, 0, 0.05);
+        }
+
+        .customer {
+            color: #475569;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .request-message {
+            padding: 13px;
+            background: #f8fafc;
+            border-radius: 7px;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            background: #fef3c7;
+            color: #92400e;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .replied {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            resize: vertical;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font: inherit;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin: 15px 0 8px;
+        }
+
+        .reply-btn {
+            margin-top: 12px;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .previous-reply {
+            padding: 14px;
+            border-left: 4px solid #2563eb;
+            background: #eff6ff;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .empty {
+            text-align: center;
+            color: #64748b;
+            padding: 35px 10px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 23px;
+            }
+        }
+
+        /* Dark mode for Help & Support page */
+        html.dark-mode body {
+            background: #111827 !important;
+            color: #f3f4f6 !important;
+        }
+
+        html.dark-mode .container,
+        html.dark-mode .content,
+        html.dark-mode .request-card,
+        html.dark-mode .card {
+            background-color: #1f2937;
+            color: #f3f4f6;
+        }
+
+        html.dark-mode h1,
+        html.dark-mode h2,
+        html.dark-mode h3,
+        html.dark-mode p,
+        html.dark-mode label,
+        html.dark-mode td,
+        html.dark-mode th {
+            color: #f3f4f6;
+        }
+
+        html.dark-mode input,
+        html.dark-mode textarea,
+        html.dark-mode select {
+            background-color: #374151;
+            color: #ffffff;
+            border-color: #4b5563;
+        }
+
+        html.dark-mode table {
+            background-color: #1f2937;
+        }
+
+        html.dark-mode .back-btn {
+            color: #ffffff;
+        }
+    </style>
+
+</head>
+
+<body>
+<div class="container">
+
+    <div class="header">
+        <h1>❔ Help & Support Requests</h1>
+
+        <a th:href="@{/admin/dashboard}" class="back-btn">
+            ← Dashboard
+        </a>
+    </div>
+
+    <div th:if="${successMessage}"
+         class="alert success"
+         th:text="${successMessage}"></div>
+
+    <div th:if="${errorMessage}"
+         class="alert error"
+         th:text="${errorMessage}"></div>
+
+    <div th:if="${#lists.isEmpty(helpRequests)}" class="card empty">
+        No help requests found.
+    </div>
+
+    <div th:each="request : ${helpRequests}" class="card">
+
+        <h2 th:text="${request.subject}">Request Subject</h2>
+
+        <div class="customer">
+            <strong>Customer:</strong>
+            <span th:text="${request.user.fullName}"></span>
+            <br>
+
+            <strong>Email:</strong>
+            <span th:text="${request.user.email}"></span>
+            <br>
+
+            <strong>Customer ID:</strong>
+            <span th:text="${request.user.id}"></span>
+            <br>
+
+            <strong>Category:</strong>
+            <span th:text="${request.category}"></span>
+            <br>
+
+            <strong>Submitted:</strong>
+            <span th:text="${#temporals.format(
+                request.createdAt, 'dd-MM-yyyy hh:mm a')}"></span>
+        </div>
+
+        <p><strong>Customer Message</strong></p>
+        <div class="request-message" th:text="${request.message}"></div>
+
+        <p>
+            <strong>Status:</strong>
+            <span class="status"
+                  th:classappend="${request.status == 'REPLIED'} ? ' replied' : ''"
+                  th:text="${request.status}"></span>
+        </p>
+
+        <div th:if="${request.adminReply != null
+                     and !#strings.isEmpty(request.adminReply)}">
+            <p><strong>Previous Admin Reply</strong></p>
+            <div class="previous-reply"
+                 th:text="${request.adminReply}"></div>
+        </div>
+
+        <form th:action="@{/admin/help-requests/{id}/reply(id=${request.id})}"
+              method="post">
+
+            <label th:for="${'reply-' + request.id}">
+                Write / Update Reply
+            </label>
+
+            <textarea th:id="${'reply-' + request.id}"
+                      name="adminReply"
+                      maxlength="2000"
+                      placeholder="Enter your response to the customer..."
+                      required></textarea>
+
+            <button type="submit" class="reply-btn">
+                Send Reply
+            </button>
+        </form>
+
+    </div>
+
+</div>
+</body>
+</html>

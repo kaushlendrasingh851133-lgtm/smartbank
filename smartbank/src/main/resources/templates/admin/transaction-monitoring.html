@@ -1,0 +1,496 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions | SmartBank Admin</title>
+
+    <!-- Apply saved Appearance Setting before rendering -->
+    <script>
+        (function () {
+            try {
+                const savedTheme = localStorage.getItem("adminTheme");
+
+                const isDark = savedTheme !== null
+                    ? savedTheme === "dark"
+                    : localStorage.getItem("smartbank_darkMode") === "true";
+
+                document.documentElement.classList.toggle("dark-mode", isDark);
+            } catch (error) {
+                // Use the default light theme.
+            }
+        })();
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f3f6fb;
+            color: #1e293b;
+            padding: 24px;
+            transition: background 0.25s ease, color 0.25s ease;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            font-size: 27px;
+            margin-bottom: 7px;
+        }
+
+        .muted {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .back {
+            text-decoration: none;
+            background: #174a82;
+            color: white;
+            padding: 11px 16px;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .back:hover {
+            background: #10365f;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 15px;
+            margin-bottom: 24px;
+        }
+
+        .stat,
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e8edf5;
+            transition: background 0.25s ease, border-color 0.25s ease;
+        }
+
+        .stat p {
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .stat h2 {
+            font-size: 27px;
+            color: #1e293b;
+        }
+
+        .panel {
+            padding: 20px;
+        }
+
+        .panel h2 {
+            color: #1e293b;
+        }
+
+        .search {
+            display: flex;
+            gap: 10px;
+            margin: 18px 0;
+        }
+
+        .search input {
+            flex: 1;
+            min-width: 0;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #ffffff;
+            color: #1e293b;
+            outline: none;
+        }
+
+        .search input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        button {
+            padding: 12px 18px;
+            background: #174a82;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #10365f;
+        }
+
+        .clear {
+            background: #64748b;
+            text-decoration: none;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .clear:hover {
+            background: #475569;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 950px;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 14px 12px;
+            border-bottom: 1px solid #edf0f5;
+            font-size: 13px;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #475569;
+            white-space: nowrap;
+        }
+
+        td {
+            color: #334155;
+            overflow-wrap: anywhere;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .failed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .other {
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 30px;
+            color: #64748b;
+        }
+
+        /* =========================
+           DARK MODE
+           Uses Admin Appearance Setting
+           ========================= */
+
+        html.dark-mode body {
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        html.dark-mode h1,
+        html.dark-mode .panel h2,
+        html.dark-mode .stat h2 {
+            color: #f1f5f9;
+        }
+
+        html.dark-mode .muted,
+        html.dark-mode .stat p {
+            color: #94a3b8;
+        }
+
+        html.dark-mode .stat,
+        html.dark-mode .panel {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        html.dark-mode .search input {
+            background: #111c2d;
+            color: #e2e8f0;
+            border-color: #475569;
+        }
+
+        html.dark-mode .search input::placeholder {
+            color: #94a3b8;
+        }
+
+        html.dark-mode .search input:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+        }
+
+        html.dark-mode th {
+            background: #111c2d;
+            color: #cbd5e1;
+            border-bottom-color: #334155;
+        }
+
+        html.dark-mode td {
+            color: #e2e8f0;
+            border-bottom-color: #334155;
+        }
+
+        html.dark-mode tbody tr:hover {
+            background: #263449;
+        }
+
+        html.dark-mode .empty {
+            color: #94a3b8;
+        }
+
+        /* Keep transaction status colors readable */
+
+        html.dark-mode .success {
+            background: #14532d;
+            color: #bbf7d0;
+        }
+
+        html.dark-mode .failed {
+            background: #7f1d1d;
+            color: #fecaca;
+        }
+
+        html.dark-mode .pending {
+            background: #78350f;
+            color: #fde68a;
+        }
+
+        html.dark-mode .other {
+            background: #334155;
+            color: #e2e8f0;
+        }
+
+        @media (max-width: 850px) {
+            .stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            body {
+                padding: 14px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 9px;
+            }
+
+            .stat {
+                padding: 14px;
+            }
+
+            .stat h2 {
+                font-size: 22px;
+            }
+
+            .search {
+                flex-wrap: wrap;
+            }
+
+            .search input {
+                flex-basis: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <header class="header">
+        <div>
+            <h1>Transaction Management</h1>
+            <p class="muted">View and search SmartBank transaction records.</p>
+        </div>
+
+        <a class="back" th:href="@{/admin/dashboard}">
+            ← Admin Dashboard
+        </a>
+    </header>
+
+    <section class="stats">
+        <div class="stat">
+            <p>Total Transactions</p>
+            <h2 th:text="${totalTransactions}">0</h2>
+        </div>
+
+        <div class="stat">
+            <p>Successful</p>
+            <h2 th:text="${successfulTransactions}">0</h2>
+        </div>
+
+        <div class="stat">
+            <p>Failed</p>
+            <h2 th:text="${failedTransactions}">0</h2>
+        </div>
+
+        <div class="stat">
+            <p>Pending</p>
+            <h2 th:text="${pendingTransactions}">0</h2>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Transaction History</h2>
+
+        <form class="search"
+              th:action="@{/admin/transactions}"
+              method="get">
+
+            <input type="text"
+                   name="search"
+                   th:value="${search}"
+                   placeholder="Search reference, type, status or account number">
+
+            <button type="submit">Search</button>
+
+            <a class="clear" th:href="@{/admin/transactions}">Clear</a>
+        </form>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Reference Number</th>
+                    <th>Type</th>
+                    <th>Sender Account</th>
+                    <th>Receiver Account</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Description</th>
+                    <th>Date &amp; Time</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="t, iter : ${transactions}">
+                    <td th:text="${iter.count}">1</td>
+
+                    <td th:text="${t.referenceNumber}">REF001</td>
+
+                    <td th:text="${t.transactionType}">TRANSFER</td>
+
+                    <td th:text="${t.senderAccount != null ? t.senderAccount.accountNumber : 'N/A'}">
+                        N/A
+                    </td>
+
+                    <td th:text="${t.receiverAccount != null ? t.receiverAccount.accountNumber : 'N/A'}">
+                        N/A
+                    </td>
+
+                    <td>
+                        ₹<span th:text="${t.amount}">0.00</span>
+                    </td>
+
+                    <td>
+                        <span class="status"
+                              th:classappend="${t.status != null and #strings.equalsIgnoreCase(t.status, 'SUCCESS')} ? ' success' : (${t.status != null and #strings.equalsIgnoreCase(t.status, 'FAILED')} ? ' failed' : (${t.status != null and #strings.equalsIgnoreCase(t.status, 'PENDING')} ? ' pending' : ' other'))"
+                              th:text="${t.status}">
+                            SUCCESS
+                        </span>
+                    </td>
+
+                    <td th:text="${t.description != null ? t.description : '-'}">-</td>
+
+                    <td th:text="${t.createdAt != null ? #temporals.format(t.createdAt, 'dd-MM-yyyy HH:mm') : '-'}">
+                        -
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(transactions)}">
+                    <td colspan="9" class="empty">
+                        No transactions found.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+
+<!-- Keep theme in sync with another open tab -->
+<script>
+    function applySavedAdminTheme() {
+        try {
+            const savedTheme = localStorage.getItem("adminTheme");
+
+            const isDark = savedTheme !== null
+                ? savedTheme === "dark"
+                : localStorage.getItem("smartbank_darkMode") === "true";
+
+            document.documentElement.classList.toggle("dark-mode", isDark);
+        } catch (error) {
+            // Keep the current theme if storage is unavailable.
+        }
+    }
+
+    window.addEventListener("storage", function (event) {
+        if (
+            event.key === "adminTheme" ||
+            event.key === "smartbank_darkMode" ||
+            event.key === null
+        ) {
+            applySavedAdminTheme();
+        }
+    });
+
+    window.addEventListener("pageshow", applySavedAdminTheme);
+</script>
+
+</body>
+</html>

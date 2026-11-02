@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Withdraw Money | SmartBank</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #172b4d;
+        }
+
+        .card {
+            max-width: 420px;
+            margin: 60px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px #00000015;
+        }
+
+        h1 {
+            color: #102f5c;
+            text-align: center;
+        }
+
+        p {
+            text-align: center;
+            color: #64748b;
+        }
+
+        label {
+            display: block;
+            margin-top: 25px;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            margin-top: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 8px;
+            background: #102f5c;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .error {
+            padding: 12px;
+            margin-top: 15px;
+            background: #fee2e2;
+            color: #b91c1c;
+            border-radius: 8px;
+        }
+
+        a {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            color: #155eef;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <h1>Withdraw Money</h1>
+
+    <p>SmartBank Banking</p>
+
+    <div class="error"
+         th:if="${error}"
+         th:text="${error}">
+    </div>
+
+    <form th:action="@{/withdraw}" method="post">
+
+        <label for="amount">
+            Withdrawal Amount (₹)
+        </label>
+
+        <input
+                type="number"
+                id="amount"
+                name="amount"
+                min="0.01"
+                max="1000000"
+                step="0.01"
+                placeholder="Enter amount"
+                required>
+
+        <button type="submit">
+            Withdraw Money
+        </button>
+
+    </form>
+
+    <a th:href="@{/dashboard}">
+        Back to Dashboard
+    </a>
+
+</div>
+
+</body>
+</html>

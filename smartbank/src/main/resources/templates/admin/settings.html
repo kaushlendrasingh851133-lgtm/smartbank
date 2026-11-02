@@ -1,0 +1,914 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Settings | SmartBank</title>
+
+    <script>
+        (function () {
+            try {
+                const theme = localStorage.getItem("adminTheme");
+                const dark = theme !== null
+                    ? theme === "dark"
+                    : localStorage.getItem("smartbank_darkMode") === "true";
+
+                if (dark) {
+                    document.documentElement.classList.add("dark-mode");
+                }
+            } catch (error) {
+                // Use default light theme.
+            }
+        })();
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3f6fb;
+            color: #172033;
+            transition: background .2s, color .2s;
+        }
+
+        .container {
+            width: min(950px, calc(100% - 32px));
+            margin: 30px auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .page-header h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+        }
+
+        .page-header p {
+            margin: 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: #1764c0;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .settings-card {
+            background: #fff;
+            border: 1px solid #e7edf5;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 22px;
+            box-shadow: 0 4px 15px #00000006;
+        }
+
+        .settings-card h2 {
+            font-size: 19px;
+            margin: 0 0 8px;
+        }
+
+        .description {
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.6;
+            margin: 0 0 22px;
+        }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 22px;
+        }
+
+        .profile-preview {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #dbeafe;
+            background: #eff6ff;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"],
+        input[type="email"] {
+            width: 100%;
+            padding: 12px 13px;
+            border: 1px solid #d8e0eb;
+            border-radius: 8px;
+            background: #fff;
+            color: #172033;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #3985e8;
+            box-shadow: 0 0 0 3px #3985e81a;
+        }
+
+        input[type="checkbox"] {
+            width: 17px;
+            height: 17px;
+            accent-color: #1764c0;
+            cursor: pointer;
+        }
+
+        button {
+            border: none;
+            border-radius: 8px;
+            padding: 11px 16px;
+            background: #1764c0;
+            color: #fff;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            opacity: .9;
+        }
+
+        button:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        .secondary-btn {
+            background: #e8eef7;
+            color: #26364d;
+        }
+
+        .danger-btn {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            padding: 16px 0;
+            border-bottom: 1px solid #edf1f7;
+        }
+
+        .setting-row:last-of-type {
+            border-bottom: none;
+        }
+
+        .setting-row strong {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .setting-row p {
+            margin: 0;
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        .setting-row input[type="checkbox"] {
+            flex-shrink: 0;
+        }
+
+        .save-row {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .message {
+            margin-top: 13px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 14px 0;
+            border-bottom: 1px solid #edf1f7;
+            font-size: 14px;
+            overflow-wrap: anywhere;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #64748b;
+        }
+
+        .notice {
+            padding: 12px;
+            border-radius: 8px;
+            background: #eff6ff;
+            color: #1e40af;
+            font-size: 12px;
+            line-height: 1.6;
+            margin-top: 15px;
+        }
+
+        .theme-status {
+            display: inline-block;
+            padding: 5px 9px;
+            background: #e8eef7;
+            color: #26364d;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 7px;
+        }
+
+        /* DARK MODE */
+
+        html.dark-mode body {
+            background: #101827;
+            color: #edf2fa;
+        }
+
+        html.dark-mode .settings-card {
+            background: #1b2638;
+            border-color: #334155;
+            box-shadow: none;
+        }
+
+        html.dark-mode .description,
+        html.dark-mode .setting-row p,
+        html.dark-mode .page-header p,
+        html.dark-mode .info-label {
+            color: #a8b5c8;
+        }
+
+        html.dark-mode .back-link {
+            color: #7db5ff;
+        }
+
+        html.dark-mode input[type="text"],
+        html.dark-mode input[type="email"] {
+            background: #111c2d;
+            border-color: #475569;
+            color: #edf2fa;
+        }
+
+        html.dark-mode .setting-row,
+        html.dark-mode .info-row {
+            border-bottom-color: #334155;
+        }
+
+        html.dark-mode .secondary-btn,
+        html.dark-mode .theme-status {
+            background: #334155;
+            color: #edf2fa;
+        }
+
+        html.dark-mode .notice {
+            background: #172f50;
+            color: #bfdbfe;
+        }
+
+        html.dark-mode .profile-preview {
+            border-color: #475569;
+            background: #263449;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                width: calc(100% - 24px);
+                margin: 18px auto;
+            }
+
+            .settings-card {
+                padding: 18px;
+            }
+
+            .page-header h1 {
+                font-size: 24px;
+            }
+
+            .setting-row {
+                align-items: flex-start;
+            }
+
+            .info-row {
+                flex-direction: column;
+                gap: 6px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <header class="page-header">
+        <div>
+            <h1>Admin Settings</h1>
+            <p>Manage your profile, notifications and appearance.</p>
+        </div>
+
+        <a th:href="@{/admin/dashboard}" class="back-link">
+            ← Back to Dashboard
+        </a>
+    </header>
+
+    <!-- PROFILE SETTINGS -->
+
+    <section class="settings-card">
+        <h2>Profile Settings</h2>
+        <p class="description">
+            Manage your administrator profile picture and email address.
+        </p>
+
+        <div class="profile-section">
+            <img
+                    id="profilePreview"
+                    class="profile-preview"
+                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23dbeafe'/%3E%3Ctext x='50' y='62' text-anchor='middle' font-size='40' fill='%231d4ed8'%3EA%3C/text%3E%3C/svg%3E"
+                    alt="Admin Profile Picture"
+            >
+
+            <div>
+                <div class="profile-actions">
+                    <button type="button" id="choosePhoto">
+                        Upload Picture
+                    </button>
+
+                    <button type="button" id="removePhoto" class="danger-btn">
+                        Remove Picture
+                    </button>
+                </div>
+
+                <p class="description" style="margin: 12px 0 0;">
+                    JPG, PNG, WEBP or GIF. Maximum size 5 MB.
+                </p>
+
+                <input
+                        type="file"
+                        id="photoInput"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        hidden
+                >
+            </div>
+        </div>
+
+        <div id="profileMessage" class="message" aria-live="polite"></div>
+
+        <div class="form-group">
+            <label for="adminName">Username</label>
+            <input type="text" id="adminName" readonly>
+        </div>
+
+        <div class="form-group">
+            <label for="adminEmail">Email Address</label>
+            <input
+                    type="email"
+                    id="adminEmail"
+                    placeholder="Enter administrator email"
+            >
+        </div>
+
+        <button type="button" id="saveEmail">Save Email</button>
+
+        <div id="emailMessage" class="message" aria-live="polite"></div>
+    </section>
+
+    <!-- NOTIFICATION PREFERENCES -->
+
+    <section class="settings-card">
+        <h2>Notification Preferences</h2>
+        <p class="description">
+            Choose which notification preferences you want to enable.
+            These preferences are stored in this browser.
+        </p>
+
+        <div class="setting-row">
+            <div>
+                <strong>Account Alerts</strong>
+                <p>Enable account-related notification preferences.</p>
+            </div>
+            <input type="checkbox" id="accountAlerts">
+        </div>
+
+        <div class="setting-row">
+            <div>
+                <strong>Loan Alerts</strong>
+                <p>Enable loan application notification preferences.</p>
+            </div>
+            <input type="checkbox" id="loanAlerts">
+        </div>
+
+        <div class="setting-row">
+            <div>
+                <strong>Transaction Alerts</strong>
+                <p>Enable transaction notification preferences.</p>
+            </div>
+            <input type="checkbox" id="transactionAlerts">
+        </div>
+
+        <div class="save-row">
+            <button type="button" id="saveNotifications">
+                Save Notifications
+            </button>
+        </div>
+
+        <div id="notificationMessage" class="message" aria-live="polite"></div>
+    </section>
+
+    <!-- APPEARANCE SETTINGS -->
+
+    <section class="settings-card">
+        <h2>Appearance Settings</h2>
+        <p class="description">
+            Change the appearance of the Admin Settings and Dashboard.
+        </p>
+
+        <div class="setting-row">
+            <div>
+                <strong>Dark Mode</strong>
+                <p>
+                    Turn on dark colours across the supported admin pages.
+                    Your preference will be saved in this browser.
+                </p>
+                <span id="themeStatus" class="theme-status">Light Mode</span>
+            </div>
+
+            <input type="checkbox" id="darkMode" aria-label="Enable Dark Mode">
+        </div>
+
+        <div class="save-row">
+            <button type="button" id="saveAppearance">
+                Save Appearance
+            </button>
+
+            <button type="button" id="resetPreferences" class="secondary-btn">
+                Reset Preferences
+            </button>
+        </div>
+
+        <div id="appearanceMessage" class="message" aria-live="polite"></div>
+
+        <div class="notice">
+            Theme changes are applied immediately. The Dashboard uses the
+            same saved theme when you open it.
+        </div>
+    </section>
+
+    <!-- LOGIN INFORMATION -->
+
+    <section class="settings-card">
+        <h2>Login Information</h2>
+        <p class="description">
+            Your administrator account information.
+        </p>
+
+        <div class="info-row">
+            <span class="info-label">Username</span>
+            <strong id="loginUsername">Loading...</strong>
+        </div>
+
+        <div class="info-row">
+            <span class="info-label">Email Address</span>
+            <strong id="loginEmail">Loading...</strong>
+        </div>
+    </section>
+
+</div>
+
+<script>
+    const defaultAvatar =
+        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23dbeafe'/%3E%3Ctext x='50' y='62' text-anchor='middle' font-size='40' fill='%231d4ed8'%3EA%3C/text%3E%3C/svg%3E";
+
+    const photoInput = document.getElementById("photoInput");
+    const profilePreview = document.getElementById("profilePreview");
+    const emailInput = document.getElementById("adminEmail");
+    const saveEmailButton = document.getElementById("saveEmail");
+
+    const notificationIds = [
+        "accountAlerts",
+        "loanAlerts",
+        "transactionAlerts"
+    ];
+
+    function showMessage(id, message, isError = false) {
+        const element = document.getElementById(id);
+
+        element.textContent = message;
+        element.style.color = isError ? "#dc2626" : "#16a34a";
+    }
+
+    async function readResponse(response) {
+        const text = await response.text();
+
+        if (!text) {
+            return {};
+        }
+
+        try {
+            return JSON.parse(text);
+        } catch (error) {
+            return { message: text };
+        }
+    }
+
+    async function loadAdmin() {
+        try {
+            const response = await fetch("/api/admin/me", {
+                method: "GET",
+                credentials: "same-origin",
+                headers: {
+                    "Accept": "application/json"
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error("Unable to load administrator information.");
+            }
+
+            const admin = await readResponse(response);
+
+            const username =
+                admin.username || admin.name || admin.userName || "";
+
+            const email = admin.email || "";
+
+            document.getElementById("adminName").value = username;
+            emailInput.value = email;
+
+            document.getElementById("loginUsername").textContent =
+                username || "Not available";
+
+            document.getElementById("loginEmail").textContent =
+                email || "Not available";
+
+            try {
+                const pictureResponse = await fetch(
+                    "/api/admin/profile-picture?t=" + Date.now(),
+                    {
+                        credentials: "same-origin",
+                        cache: "no-store"
+                    }
+                );
+
+                if (pictureResponse.ok) {
+                    const contentType =
+                        pictureResponse.headers.get("Content-Type") || "";
+
+                    if (contentType.startsWith("image/")) {
+                        const imageBlob = await pictureResponse.blob();
+                        profilePreview.src = URL.createObjectURL(imageBlob);
+                    } else {
+                        profilePreview.src = defaultAvatar;
+                    }
+                } else {
+                    profilePreview.src = defaultAvatar;
+                }
+            } catch (pictureError) {
+                profilePreview.src = defaultAvatar;
+            }
+
+        } catch (error) {
+            showMessage(
+                "profileMessage",
+                error.message || "Unable to load administrator information.",
+                true
+            );
+        }
+    }
+
+    // SAVE EMAIL
+
+    saveEmailButton.addEventListener("click", async function () {
+        const email = emailInput.value.trim();
+
+        if (!email) {
+            showMessage("emailMessage", "Please enter an email address.", true);
+            return;
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showMessage("emailMessage", "Please enter a valid email address.", true);
+            return;
+        }
+
+        saveEmailButton.disabled = true;
+
+        try {
+            const response = await fetch("/api/admin/email", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({ email: email })
+            });
+
+            const result = await readResponse(response);
+
+            if (!response.ok) {
+                throw new Error(
+                    result.message || "Unable to save email address."
+                );
+            }
+
+            document.getElementById("loginEmail").textContent = email;
+
+            showMessage(
+                "emailMessage",
+                result.message || "Email address saved successfully."
+            );
+
+        } catch (error) {
+            showMessage(
+                "emailMessage",
+                error.message || "Unable to save email address.",
+                true
+            );
+        } finally {
+            saveEmailButton.disabled = false;
+        }
+    });
+
+    // UPLOAD PROFILE PICTURE
+
+    document.getElementById("choosePhoto").addEventListener("click", function () {
+        photoInput.click();
+    });
+
+    photoInput.addEventListener("change", async function () {
+        const file = photoInput.files[0];
+
+        if (!file) {
+            return;
+        }
+
+        const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif"
+        ];
+
+        if (!allowedTypes.includes(file.type)) {
+            showMessage(
+                "profileMessage",
+                "Please select a JPG, PNG, WEBP or GIF image.",
+                true
+            );
+
+            photoInput.value = "";
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            showMessage(
+                "profileMessage",
+                "Image size must not exceed 5 MB.",
+                true
+            );
+
+            photoInput.value = "";
+            return;
+        }
+
+        const previousImage = profilePreview.src;
+        profilePreview.src = URL.createObjectURL(file);
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const response = await fetch("/api/admin/profile-picture", {
+                method: "POST",
+                credentials: "same-origin",
+                body: formData
+            });
+
+            const result = await readResponse(response);
+
+            if (!response.ok) {
+                throw new Error(
+                    result.message || "Unable to save the picture."
+                );
+            }
+
+            showMessage(
+                "profileMessage",
+                result.message || "Profile picture updated successfully."
+            );
+
+            await loadAdmin();
+
+        } catch (error) {
+            profilePreview.src = previousImage;
+
+            showMessage(
+                "profileMessage",
+                error.message || "Unable to save the picture. Check the server response.",
+                true
+            );
+        } finally {
+            photoInput.value = "";
+        }
+    });
+
+    // REMOVE PROFILE PICTURE
+
+    document.getElementById("removePhoto").addEventListener("click", async function () {
+        if (!confirm("Are you sure you want to remove your profile picture?")) {
+            return;
+        }
+
+        try {
+            const response = await fetch("/api/admin/profile-picture", {
+                method: "DELETE",
+                credentials: "same-origin"
+            });
+
+            const result = await readResponse(response);
+
+            if (!response.ok) {
+                throw new Error(
+                    result.message || "Unable to remove profile picture."
+                );
+            }
+
+            profilePreview.src = defaultAvatar;
+
+            showMessage(
+                "profileMessage",
+                result.message || "Profile picture removed successfully."
+            );
+
+        } catch (error) {
+            showMessage(
+                "profileMessage",
+                error.message || "Unable to remove profile picture.",
+                true
+            );
+        }
+    });
+
+    // NOTIFICATION PREFERENCES
+
+    function loadNotificationPreferences() {
+        notificationIds.forEach(function (id) {
+            const saved = localStorage.getItem("smartbank_" + id);
+
+            document.getElementById(id).checked = saved === "true";
+        });
+    }
+
+    document.getElementById("saveNotifications").addEventListener("click", function () {
+        notificationIds.forEach(function (id) {
+            localStorage.setItem(
+                "smartbank_" + id,
+                String(document.getElementById(id).checked)
+            );
+        });
+
+        showMessage(
+            "notificationMessage",
+            "Notification preferences saved in this browser."
+        );
+    });
+
+    // APPEARANCE SETTINGS
+
+    const darkMode = document.getElementById("darkMode");
+    const themeStatus = document.getElementById("themeStatus");
+
+    function applyDarkMode(enabled, savePreference = true) {
+        document.documentElement.classList.toggle("dark-mode", enabled);
+        document.body.classList.toggle("dark", enabled);
+
+        darkMode.checked = enabled;
+        themeStatus.textContent = enabled ? "Dark Mode" : "Light Mode";
+
+        if (savePreference) {
+            localStorage.setItem("adminTheme", enabled ? "dark" : "light");
+            localStorage.setItem("smartbank_darkMode", String(enabled));
+        }
+    }
+
+    function loadAppearance() {
+        const savedTheme = localStorage.getItem("adminTheme");
+
+        if (savedTheme !== null) {
+            applyDarkMode(savedTheme === "dark", false);
+        } else {
+            const oldPreference =
+                localStorage.getItem("smartbank_darkMode") === "true";
+
+            applyDarkMode(oldPreference, true);
+        }
+    }
+
+    darkMode.addEventListener("change", function () {
+        applyDarkMode(darkMode.checked);
+
+        showMessage(
+            "appearanceMessage",
+            "Theme updated. Your preference has been saved."
+        );
+    });
+
+    document.getElementById("saveAppearance").addEventListener("click", function () {
+        applyDarkMode(darkMode.checked);
+
+        showMessage(
+            "appearanceMessage",
+            "Appearance preference saved successfully."
+        );
+    });
+
+    document.getElementById("resetPreferences").addEventListener("click", function () {
+        if (!confirm("Reset notification and appearance preferences?")) {
+            return;
+        }
+
+        notificationIds.forEach(function (id) {
+            localStorage.removeItem("smartbank_" + id);
+            document.getElementById(id).checked = false;
+        });
+
+        applyDarkMode(false);
+
+        showMessage(
+            "appearanceMessage",
+            "Appearance preferences reset to Light Mode."
+        );
+
+        showMessage(
+            "notificationMessage",
+            "Notification preferences reset."
+        );
+    });
+
+    // Synchronize settings if the theme is changed in another tab.
+
+    window.addEventListener("storage", function (event) {
+        if (
+            event.key === "adminTheme" ||
+            event.key === "smartbank_darkMode"
+        ) {
+            const savedTheme = localStorage.getItem("adminTheme");
+
+            const enabled = savedTheme !== null
+                ? savedTheme === "dark"
+                : localStorage.getItem("smartbank_darkMode") === "true";
+
+            applyDarkMode(enabled, false);
+        }
+    });
+
+    // INITIALIZE PAGE
+
+    loadAdmin();
+    loadNotificationPreferences();
+    loadAppearance();
+</script>
+
+</body>
+</html>

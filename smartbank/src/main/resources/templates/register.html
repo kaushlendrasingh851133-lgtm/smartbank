@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SmartBank | Register</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: #eef3fa;
+            font-family: Arial, sans-serif;
+        }
+
+        .card {
+            width: 400px;
+            max-width: 100%;
+            padding: 32px;
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 10px 35px #142b4d18;
+        }
+
+        h1 {
+            color: #123b72;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        p {
+            text-align: center;
+            color: #667085;
+        }
+
+        label {
+            display: block;
+            margin: 15px 0 7px;
+            color: #344054;
+            font-weight: 600;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d0d5dd;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #155eef;
+            box-shadow: 0 0 0 3px #155eef18;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 24px;
+            border: none;
+            border-radius: 8px;
+            background: #155eef;
+            color: white;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #004eeb;
+        }
+
+        a {
+            color: #155eef;
+            text-decoration: none;
+        }
+
+        .error {
+            color: #c62828;
+            overflow-wrap: anywhere;
+        }
+
+        .account-info {
+            margin-top: 7px;
+            font-size: 12px;
+            text-align: left;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <h1>SmartBank</h1>
+
+    <p>Create your banking account</p>
+
+    <p class="error"
+       th:if="${error}"
+       th:text="${error}"
+       role="alert"></p>
+
+    <form th:action="@{/register}"
+          th:object="${registerRequest}"
+          method="post">
+
+        <label for="fullName">Full Name</label>
+
+        <input type="text"
+               id="fullName"
+               th:field="*{fullName}"
+               placeholder="Enter your full name"
+               maxlength="100"
+               autocomplete="name"
+               required>
+
+        <label for="email">Email Address</label>
+
+        <input type="email"
+               id="email"
+               th:field="*{email}"
+               placeholder="Enter your email"
+               maxlength="150"
+               autocomplete="email"
+               required>
+
+        <label for="password">Password</label>
+
+        <input type="password"
+               id="password"
+               th:field="*{password}"
+               placeholder="Minimum 8 characters"
+               minlength="8"
+               autocomplete="new-password"
+               required>
+
+        <label for="accountType">Choose Account Type</label>
+
+        <select id="accountType"
+                th:field="*{accountType}"
+                required>
+
+            <option value="SAVINGS">Savings Account</option>
+
+            <option value="CURRENT">Current Account</option>
+
+        </select>
+
+        <p class="account-info">
+            Choose the account type you want to create.
+            Your account will require verification before banking
+            transactions are enabled.
+        </p>
+
+        <button type="submit">Create Account</button>
+
+    </form>
+
+    <p>
+        Already registered?
+        <a th:href="@{/login}">Login</a>
+    </p>
+
+</div>
+
+</body>
+</html>

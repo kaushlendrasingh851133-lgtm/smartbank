@@ -1,0 +1,576 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Loans & Repayments | SmartBank Admin</title>
+
+    <script>
+        (function () {
+            try {
+                const theme = localStorage.getItem("adminTheme");
+                const dark = theme !== null
+                    ? theme === "dark"
+                    : localStorage.getItem("smartbank_darkMode") === "true";
+                document.documentElement.classList.toggle("dark-mode", dark);
+            } catch (e) {}
+        })();
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background: #f3f6fb;
+            color: #1e293b;
+            transition: background .2s, color .2s;
+        }
+
+        .page {
+            max-width: 1500px;
+            margin: auto;
+            padding: 22px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+
+        h1 {
+            font-size: 26px;
+            margin-bottom: 7px;
+        }
+
+        .subtitle, .muted {
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+        }
+
+        .back-btn, .btn {
+            display: inline-block;
+            text-decoration: none;
+            border: 0;
+            border-radius: 8px;
+            padding: 11px 15px;
+            background: #1764c0;
+            color: white;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .back-btn { background: #174a82; }
+        .reset-btn { background: #64748b; }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card, .search-panel, .customer-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #00000006;
+        }
+
+        .stat-card { padding: 18px; }
+        .stat-card p { color: #64748b; font-size: 13px; margin-bottom: 9px; }
+        .stat-card h2 { font-size: 25px; overflow-wrap: anywhere; }
+
+        .search-panel {
+            padding: 16px;
+            margin-bottom: 22px;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .search-form input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        input {
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: white;
+            color: #1e293b;
+            font-size: 14px;
+        }
+
+        .customer-card {
+            overflow: hidden;
+            margin-bottom: 22px;
+        }
+
+        .customer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 18px;
+            background: #edf4ff;
+            border-bottom: 1px solid #dbe7f5;
+        }
+
+        .customer-name { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+
+        .count {
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 7px 11px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .loan-card {
+            margin: 16px;
+            border: 1px solid #dbe3ee;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .loan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 15px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .loan-title { font-size: 16px; font-weight: bold; margin-bottom: 6px; }
+
+        .loan-info {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            padding: 15px;
+        }
+
+        .info-item {
+            padding: 11px;
+            background: #f8fafc;
+            border-radius: 8px;
+            min-width: 0;
+        }
+
+        .info-item small {
+            display: block;
+            color: #64748b;
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+
+        .info-item strong {
+            font-size: 13px;
+            overflow-wrap: anywhere;
+        }
+
+        .table-title {
+            font-size: 14px;
+            font-weight: bold;
+            padding: 13px 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .table-wrap { width: 100%; overflow-x: auto; }
+
+        table {
+            width: 100%;
+            min-width: 850px;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            white-space: nowrap;
+            border-bottom: 1px solid #edf0f5;
+        }
+
+        th { background: #f1f5f9; color: #334155; }
+        tbody tr:hover { background: #f5f9ff; }
+
+        .status {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        .status-paid, .status-approved {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-pending {
+            background: #ffedd5;
+            color: #9a3412;
+        }
+
+        .status-rejected, .status-overdue {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .no-repayments {
+            padding: 15px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 35px 15px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            color: #64748b;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 24px 0 5px;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        html.dark-mode body { background: #0f172a; color: #e2e8f0; }
+
+        html.dark-mode .stat-card,
+        html.dark-mode .search-panel,
+        html.dark-mode .customer-card,
+        html.dark-mode .empty {
+            background: #1e293b;
+            color: #e2e8f0;
+            border-color: #334155;
+            box-shadow: none;
+        }
+
+        html.dark-mode .subtitle,
+        html.dark-mode .muted,
+        html.dark-mode .stat-card p {
+            color: #94a3b8;
+        }
+
+        html.dark-mode .customer-header { background: #273449; border-color: #334155; }
+        html.dark-mode .loan-header,
+        html.dark-mode .info-item,
+        html.dark-mode th { background: #273449; color: #e2e8f0; }
+        html.dark-mode .loan-card { border-color: #334155; }
+        html.dark-mode .loan-header,
+        html.dark-mode .table-title,
+        html.dark-mode th,
+        html.dark-mode td { border-color: #334155; }
+        html.dark-mode input {
+            background: #0f172a;
+            color: #e2e8f0;
+            border-color: #475569;
+        }
+        html.dark-mode tbody tr:hover { background: #273449; }
+        html.dark-mode .count { background: #1e3a5f; color: #bfdbfe; }
+        html.dark-mode .status-paid,
+        html.dark-mode .status-approved { background: #16452e; color: #86efac; }
+        html.dark-mode .status-pending { background: #54351d; color: #fdba74; }
+        html.dark-mode .status-rejected,
+        html.dark-mode .status-overdue { background: #581c1c; color: #fca5a5; }
+        html.dark-mode .status { background: #334155; color: #e2e8f0; }
+
+        @media (max-width: 850px) {
+            .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .loan-info { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 520px) {
+            .page { padding: 12px; }
+            h1 { font-size: 22px; }
+            .stats, .loan-info { grid-template-columns: 1fr; }
+            .search-form { flex-direction: column; }
+            .search-form input, .search-form .btn, .back-btn {
+                width: 100%;
+                text-align: center;
+            }
+            .loan-card { margin: 10px; }
+        }
+    </style>
+</head>
+
+<body>
+<div class="page">
+
+    <header class="topbar">
+        <div>
+            <h1>💳 Customer Loans & Repayments</h1>
+            <p class="subtitle">
+                View every customer's loan applications and their EMI repayment records.
+            </p>
+        </div>
+        <a th:href="@{/admin/dashboard}" class="back-btn">← Back to Dashboard</a>
+    </header>
+
+    <section class="stats">
+        <div class="stat-card">
+            <p>Total Loans</p>
+            <h2 th:text="${totalLoans}">0</h2>
+        </div>
+        <div class="stat-card">
+            <p>Total Repayments</p>
+            <h2 th:text="${totalRepayments}">0</h2>
+        </div>
+        <div class="stat-card">
+            <p>Paid Repayments</p>
+            <h2 th:text="${paidRepayments}">0</h2>
+        </div>
+        <div class="stat-card">
+            <p>Pending Repayments</p>
+            <h2 th:text="${pendingRepayments}">0</h2>
+        </div>
+    </section>
+
+    <section class="search-panel">
+        <form th:action="@{/admin/loan-repayments}" method="get" class="search-form">
+            <input type="text"
+                   name="search"
+                   th:value="${search}"
+                   placeholder="Search customer, email, loan ID, type, status or installment...">
+            <button type="submit" class="btn">🔍 Search</button>
+            <a th:href="@{/admin/loan-repayments}" class="btn reset-btn">Reset</a>
+        </form>
+    </section>
+
+    <div th:if="${!#maps.isEmpty(loansByCustomer)}">
+
+        <section class="customer-card"
+                 th:each="customerGroup : ${loansByCustomer}">
+
+            <div class="customer-header">
+                <div>
+                    <div class="customer-name"
+                         th:text="${customerGroup.value[0].user.fullName}">
+                        Customer Name
+                    </div>
+                    <div class="muted"
+                         th:text="${customerGroup.value[0].user.email}">
+                        customer@email.com
+                    </div>
+                    <div class="muted">
+                        Customer ID:
+                        <span th:text="${customerGroup.key}">1</span>
+                    </div>
+                </div>
+
+                <div class="count">
+                    <span th:text="${customerGroup.value.size()}">0</span>
+                    loan(s)
+                </div>
+            </div>
+
+            <!-- Every loan belonging to this customer -->
+            <article class="loan-card"
+                     th:each="loan : ${customerGroup.value}">
+
+                <div class="loan-header">
+                    <div>
+                        <div class="loan-title">
+                            Loan #<span th:text="${loan.id}">1</span>
+                            — <span th:text="${loan.loanType}">Personal Loan</span>
+                        </div>
+                        <div class="muted">
+                            Applied:
+                            <span th:text="${loan.appliedAt != null
+                                ? #temporals.format(loan.appliedAt, 'dd-MM-yyyy HH:mm')
+                                : '—'}">—</span>
+                        </div>
+                    </div>
+
+                    <span class="status"
+                          th:classappend="${loan.status != null
+                              and loan.status.name() == 'APPROVED'}
+                              ? ' status-approved'
+                              : (${loan.status != null
+                                  and loan.status.name() == 'REJECTED'}
+                                  ? ' status-rejected'
+                                  : (${loan.status != null
+                                      and loan.status.name() == 'PENDING'}
+                                      ? ' status-pending' : ''))"
+                          th:text="${loan.status != null
+                              ? loan.status.name() : 'UNKNOWN'}">
+                        PENDING
+                    </span>
+                </div>
+
+                <div class="loan-info">
+                    <div class="info-item">
+                        <small>Loan Amount</small>
+                        <strong>
+                            ₹<span th:text="${loan.loanAmount != null
+                                ? #numbers.formatDecimal(loan.loanAmount, 1, 'COMMA', 2, 'POINT')
+                                : '0.00'}">0.00</span>
+                        </strong>
+                    </div>
+
+                    <div class="info-item">
+                        <small>Duration</small>
+                        <strong>
+                            <span th:text="${loan.durationMonths != null
+                                ? loan.durationMonths : 0}">12</span> months
+                        </strong>
+                    </div>
+
+                    <div class="info-item">
+                        <small>Monthly Income</small>
+                        <strong>
+                            ₹<span th:text="${loan.monthlyIncome != null
+                                ? #numbers.formatDecimal(loan.monthlyIncome, 1, 'COMMA', 2, 'POINT')
+                                : '0.00'}">0.00</span>
+                        </strong>
+                    </div>
+
+                    <div class="info-item">
+                        <small>Admin Remark</small>
+                        <strong th:text="${loan.adminRemark != null
+                            and !#strings.isEmpty(loan.adminRemark)
+                            ? loan.adminRemark : '—'}">—</strong>
+                    </div>
+                </div>
+
+                <div class="table-title">📋 Repayment / EMI Details</div>
+
+                <div class="table-wrap"
+                     th:if="${repaymentsByLoan.containsKey(loan.id)
+                         and !#lists.isEmpty(repaymentsByLoan.get(loan.id))}">
+
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Repayment ID</th>
+                            <th>Installment</th>
+                            <th>EMI Amount</th>
+                            <th>Due Date</th>
+                            <th>Paid Amount</th>
+                            <th>Payment Date</th>
+                            <th>Payment Status</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="repayment : ${repaymentsByLoan.get(loan.id)}">
+                            <td th:text="${repayment.id}">1</td>
+
+                            <td th:text="${repayment.installmentNumber}">1</td>
+
+                            <td>
+                                ₹<span th:text="${repayment.emiAmount != null
+                                    ? #numbers.formatDecimal(repayment.emiAmount, 1, 'COMMA', 2, 'POINT')
+                                    : '0.00'}">0.00</span>
+                            </td>
+
+                            <td th:text="${repayment.dueDate != null
+                                ? #temporals.format(repayment.dueDate, 'dd-MM-yyyy')
+                                : '—'}">—</td>
+
+                            <td>
+                                ₹<span th:text="${repayment.paidAmount != null
+                                    ? #numbers.formatDecimal(repayment.paidAmount, 1, 'COMMA', 2, 'POINT')
+                                    : '0.00'}">0.00</span>
+                            </td>
+
+                            <td th:text="${repayment.paidAt != null
+                                ? #temporals.format(repayment.paidAt, 'dd-MM-yyyy HH:mm')
+                                : '—'}">—</td>
+
+                            <td>
+                                <span class="status"
+                                      th:classappend="${repayment.paymentStatus != null
+                                          and repayment.paymentStatus.name() == 'PAID'}
+                                          ? ' status-paid'
+                                          : (${repayment.paymentStatus != null
+                                              and repayment.paymentStatus.name() == 'PENDING'}
+                                              ? ' status-pending'
+                                              : (${repayment.paymentStatus != null
+                                                  and repayment.paymentStatus.name() == 'OVERDUE'}
+                                                  ? ' status-overdue' : ''))"
+                                      th:text="${repayment.paymentStatus != null
+                                          ? repayment.paymentStatus.name() : 'UNKNOWN'}">
+                                    PENDING
+                                </span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="no-repayments"
+                     th:if="${!repaymentsByLoan.containsKey(loan.id)
+                         or #lists.isEmpty(repaymentsByLoan.get(loan.id))}">
+                    No repayment records have been generated for this loan yet.
+                </div>
+
+            </article>
+        </section>
+    </div>
+
+    <div class="empty" th:if="${#maps.isEmpty(loansByCustomer)}">
+        No loan applications found for this search.
+    </div>
+
+    <footer class="footer">
+        © 2026 SmartBank. All rights reserved.
+    </footer>
+</div>
+
+<script>
+    function applyAdminTheme() {
+        try {
+            const theme = localStorage.getItem("adminTheme");
+            const dark = theme !== null
+                ? theme === "dark"
+                : localStorage.getItem("smartbank_darkMode") === "true";
+
+            document.documentElement.classList.toggle("dark-mode", dark);
+        } catch (e) {}
+    }
+
+    window.addEventListener("storage", function (event) {
+        if (event.key === "adminTheme"
+            || event.key === "smartbank_darkMode"
+            || event.key === null) {
+            applyAdminTheme();
+        }
+    });
+
+    window.addEventListener("pageshow", applyAdminTheme);
+    applyAdminTheme();
+</script>
+</body>
+</html>

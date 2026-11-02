@@ -1,0 +1,534 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FD Details | SmartBank Admin</title>
+
+    <!-- Apply saved Dashboard theme before rendering -->
+    <script>
+        (function () {
+            try {
+                const savedTheme = localStorage.getItem("adminTheme");
+                const isDark = savedTheme !== null
+                    ? savedTheme === "dark"
+                    : localStorage.getItem("smartbank_darkMode") === "true";
+
+                if (isDark) {
+                    document.documentElement.classList.add("dark-mode");
+                }
+            } catch (error) {
+                // Use light theme if storage is unavailable.
+            }
+        })();
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background: #f3f6fb;
+            color: #1e293b;
+            transition: background .2s, color .2s;
+        }
+
+        .page {
+            max-width: 1500px;
+            margin: auto;
+            padding: 25px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            font-size: 27px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .back-btn {
+            display: inline-block;
+            text-decoration: none;
+            padding: 11px 16px;
+            background: #174a82;
+            color: white;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .back-btn:hover {
+            background: #2878c9;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 21px;
+            border: 1px solid #edf1f7;
+            border-radius: 13px;
+            box-shadow: 0 3px 15px #00000006;
+        }
+
+        .stat-card p {
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card h2 {
+            font-size: 26px;
+            color: #172b4d;
+            overflow-wrap: anywhere;
+        }
+
+        .search-panel {
+            background: white;
+            border: 1px solid #edf1f7;
+            border-radius: 13px;
+            padding: 20px;
+            margin-bottom: 22px;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .search-form input {
+            flex: 1;
+            min-width: 190px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 13px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: white;
+            color: #1e293b;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #2878c9;
+            box-shadow: 0 0 0 3px #2878c920;
+        }
+
+        .btn {
+            padding: 12px 17px;
+            border: none;
+            border-radius: 8px;
+            background: #1764c0;
+            color: white;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .reset-btn {
+            background: #64748b;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .table-panel {
+            background: white;
+            border: 1px solid #edf1f7;
+            border-radius: 13px;
+            overflow: hidden;
+            box-shadow: 0 3px 15px #00000006;
+        }
+
+        .table-heading {
+            padding: 20px;
+            border-bottom: 1px solid #e8edf5;
+        }
+
+        .table-heading h2 {
+            font-size: 18px;
+            margin-bottom: 6px;
+        }
+
+        .table-heading p {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 1150px;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 14px 13px;
+            text-align: left;
+            white-space: nowrap;
+            border-bottom: 1px solid #edf0f5;
+        }
+
+        th {
+            background: #edf2f7;
+            color: #334155;
+            font-size: 12px;
+        }
+
+        tbody tr:hover {
+            background: #f5f9ff;
+        }
+
+        .customer-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .muted {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-matured {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 35px 15px;
+            color: #64748b;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 25px 0 5px;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        /* Match Admin Dashboard dark mode */
+        html.dark-mode body {
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        html.dark-mode .stat-card,
+        html.dark-mode .search-panel,
+        html.dark-mode .table-panel {
+            background: #1e293b;
+            color: #e2e8f0;
+            border-color: #334155;
+            box-shadow: none;
+        }
+
+        html.dark-mode .stat-card p,
+        html.dark-mode .subtitle,
+        html.dark-mode .table-heading p,
+        html.dark-mode .muted,
+        html.dark-mode .empty {
+            color: #94a3b8;
+        }
+
+        html.dark-mode .stat-card h2,
+        html.dark-mode .table-heading h2 {
+            color: #f1f5f9;
+        }
+
+        html.dark-mode .table-heading,
+        html.dark-mode th,
+        html.dark-mode td {
+            border-color: #334155;
+        }
+
+        html.dark-mode th {
+            background: #273449;
+            color: #f1f5f9;
+        }
+
+        html.dark-mode td {
+            color: #e2e8f0;
+        }
+
+        html.dark-mode tbody tr:hover {
+            background: #273449;
+        }
+
+        html.dark-mode input {
+            background: #0f172a;
+            color: #e2e8f0;
+            border-color: #475569;
+        }
+
+        html.dark-mode input::placeholder {
+            color: #94a3b8;
+        }
+
+        html.dark-mode .status {
+            background: #334155;
+            color: #e2e8f0;
+        }
+
+        html.dark-mode .status-active {
+            background: #16452e;
+            color: #86efac;
+        }
+
+        html.dark-mode .status-matured {
+            background: #1e3a5f;
+            color: #93c5fd;
+        }
+
+        html.dark-mode .footer {
+            color: #94a3b8;
+        }
+
+        @media (max-width: 700px) {
+            .page {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 23px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .search-form {
+                flex-direction: column;
+            }
+
+            .search-form input,
+            .search-form .btn {
+                width: 100%;
+            }
+
+            .back-btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="page">
+
+    <header class="topbar">
+        <div>
+            <h1>🏦 Fixed Deposit Details</h1>
+            <p class="subtitle">
+                View customer FD accounts, interest, maturity dates and status.
+            </p>
+        </div>
+
+        <a th:href="@{/admin/dashboard}" class="back-btn">
+            ← Back to Dashboard
+        </a>
+    </header>
+
+    <section class="stats">
+        <div class="stat-card">
+            <p>Total Fixed Deposits</p>
+            <h2 th:text="${totalFDs}">0</h2>
+        </div>
+
+        <div class="stat-card">
+            <p>Active Fixed Deposits</p>
+            <h2 th:text="${activeFDs}">0</h2>
+        </div>
+
+        <div class="stat-card">
+            <p>Matured Fixed Deposits</p>
+            <h2 th:text="${maturedFDs}">0</h2>
+        </div>
+    </section>
+
+    <section class="search-panel">
+        <form th:action="@{/admin/fixed-deposits}"
+              method="get"
+              class="search-form">
+
+            <input type="text"
+                   name="search"
+                   th:value="${search}"
+                   placeholder="Search customer, email, account number or status...">
+
+            <button type="submit" class="btn">
+                🔍 Search
+            </button>
+
+            <a th:href="@{/admin/fixed-deposits}" class="btn reset-btn">
+                Reset
+            </a>
+        </form>
+    </section>
+
+    <section class="table-panel">
+        <div class="table-heading">
+            <h2>All Customer Fixed Deposits</h2>
+            <p>FD records registered in SmartBank.</p>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>FD ID</th>
+                    <th>Customer</th>
+                    <th>Account Number</th>
+                    <th>Principal Amount</th>
+                    <th>Interest Rate</th>
+                    <th>Duration</th>
+                    <th>Start Date</th>
+                    <th>Maturity Date</th>
+                    <th>Interest Amount</th>
+                    <th>Maturity Amount</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="fd : ${fixedDeposits}">
+                    <td th:text="${fd.id}">1</td>
+
+                    <td>
+                        <div class="customer-name"
+                             th:text="${fd.user.fullName}">Customer Name</div>
+                        <div class="muted"
+                             th:text="${fd.user.email}">customer@email.com</div>
+                    </td>
+
+                    <td th:text="${fd.account.accountNumber}">100001</td>
+
+                    <td>
+                        ₹<span th:text="${#numbers.formatDecimal(fd.principalAmount, 1, 'COMMA', 2, 'POINT')}">0.00</span>
+                    </td>
+
+                    <td>
+                        <span th:text="${fd.interestRate}">6</span>%
+                    </td>
+
+                    <td>
+                        <span th:text="${fd.durationMonths}">12</span> months
+                    </td>
+
+                    <td th:text="${fd.startDate != null ? #temporals.format(fd.startDate, 'dd-MM-yyyy') : '—'}">—</td>
+
+                    <td th:text="${fd.maturityDate != null ? #temporals.format(fd.maturityDate, 'dd-MM-yyyy') : '—'}">—</td>
+
+                    <td>
+                        ₹<span th:text="${#numbers.formatDecimal(fd.interestAmount, 1, 'COMMA', 2, 'POINT')}">0.00</span>
+                    </td>
+
+                    <td>
+                        <strong>
+                            ₹<span th:text="${#numbers.formatDecimal(fd.maturityAmount, 1, 'COMMA', 2, 'POINT')}">0.00</span>
+                        </strong>
+                    </td>
+
+                    <td>
+                        <span class="status"
+                              th:classappend="${fd.status != null and fd.status.name() == 'ACTIVE'} ? ' status-active' : (${fd.status != null and fd.status.name() == 'MATURED'} ? ' status-matured' : '')"
+                              th:text="${fd.status != null ? fd.status.name() : 'UNKNOWN'}">ACTIVE</span>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(fixedDeposits)}">
+                    <td colspan="11" class="empty">
+                        No fixed deposit records found.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <footer class="footer">
+        © 2026 SmartBank. All rights reserved.
+    </footer>
+
+</div>
+
+<!-- Keep this theme logic consistent with Admin Dashboard -->
+<script>
+    function applyAdminTheme() {
+        try {
+            const savedTheme = localStorage.getItem("adminTheme");
+
+            const isDark = savedTheme !== null
+                ? savedTheme === "dark"
+                : localStorage.getItem("smartbank_darkMode") === "true";
+
+            document.documentElement.classList.toggle("dark-mode", isDark);
+        } catch (error) {
+            console.warn("Could not apply saved theme.", error);
+        }
+    }
+
+    window.addEventListener("storage", function (event) {
+        if (
+            event.key === "adminTheme" ||
+            event.key === "smartbank_darkMode" ||
+            event.key === null
+        ) {
+            applyAdminTheme();
+        }
+    });
+
+    window.addEventListener("pageshow", applyAdminTheme);
+    applyAdminTheme();
+</script>
+
+</body>
+</html>

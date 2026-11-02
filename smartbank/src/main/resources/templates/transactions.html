@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction History | SmartBank</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        header {
+            background: #0f172a;
+            color: white;
+            padding: 22px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logo {
+            font-size: 25px;
+            font-weight: bold;
+            color: #60a5fa;
+        }
+
+        .back {
+            color: white;
+            text-decoration: none;
+            background: #2563eb;
+            padding: 11px 18px;
+            border-radius: 8px;
+        }
+
+        main {
+            max-width: 1150px;
+            margin: 35px auto;
+            padding: 0 18px;
+        }
+
+        .heading {
+            margin-bottom: 25px;
+        }
+
+        .heading h1 {
+            font-size: 30px;
+            margin-bottom: 9px;
+        }
+
+        .heading p {
+            color: #64748b;
+        }
+
+        .account-card {
+            background: linear-gradient(135deg, #1d4ed8, #0f172a);
+            color: white;
+            padding: 26px;
+            border-radius: 18px;
+            margin-bottom: 28px;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+        }
+
+        .account-card p {
+            color: #dbeafe;
+            margin-bottom: 10px;
+        }
+
+        .account-number {
+            font-size: 23px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 18px;
+        }
+
+        .table-card {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 5px 20px rgba(15, 23, 42, 0.06);
+        }
+
+        .table-heading {
+            font-size: 21px;
+            margin-bottom: 20px;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 750px;
+        }
+
+        th, td {
+            padding: 16px 13px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #475569;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .failed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .credit {
+            color: #15803d;
+            font-weight: bold;
+        }
+
+        .debit {
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 45px 15px;
+            color: #64748b;
+        }
+
+        .empty h3 {
+            color: #334155;
+            margin-bottom: 10px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px 15px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding: 18px;
+            }
+
+            main {
+                margin-top: 25px;
+            }
+
+            .heading h1 {
+                font-size: 25px;
+            }
+
+            .account-card,
+            .table-card {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">SmartBank</div>
+    <a th:href="@{/dashboard}" class="back">← Dashboard</a>
+</header>
+
+<main>
+
+    <section class="heading">
+        <h1>Transaction History</h1>
+        <p>View your account transactions and payment records.</p>
+    </section>
+
+    <section class="account-card">
+        <p>Account Holder</p>
+
+        <h2 th:text="${user.fullName}">Customer Name</h2>
+
+        <p style="margin-top: 18px;">Account Number</p>
+
+        <div class="account-number"
+             th:text="${account.accountNumber}">
+            1000000000000000
+        </div>
+
+        <p>
+            Account Type:
+            <strong th:text="${account.accountType}">SAVINGS</strong>
+        </p>
+    </section>
+
+    <section class="table-card">
+
+        <h2 class="table-heading">All Transactions</h2>
+
+        <div class="table-wrapper"
+             th:if="${not #lists.isEmpty(transactions)}">
+
+            <table>
+                <thead>
+                <tr>
+                    <th>Date & Time</th>
+                    <th>Reference Number</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="tx : ${transactions}">
+
+                    <td th:text="${tx.createdAt != null ? #temporals.format(tx.createdAt, 'dd-MM-yyyy HH:mm') : '-'}">
+                        15-10-2026 10:30
+                    </td>
+
+                    <td th:text="${tx.referenceNumber}">
+                        REF123
+                    </td>
+
+                    <td th:text="${tx.transactionType}">
+                        DEPOSIT
+                    </td>
+
+                    <td th:classappend="${tx.receiverAccount != null ? 'credit' : 'debit'}"
+                        th:text="${(tx.receiverAccount != null ? '+ ₹' : '- ₹') + #numbers.formatDecimal(tx.amount, 1, 2)}">
+                        + ₹100.00
+                    </td>
+
+                    <td>
+                        <span class="badge"
+                              th:classappend="${tx.status == 'SUCCESS' ? 'success' : (tx.status == 'FAILED' ? 'failed' : 'pending')}"
+                              th:text="${tx.status}">
+                            SUCCESS
+                        </span>
+                    </td>
+
+                    <td th:text="${tx.description != null ? tx.description : '-'}">
+                        Deposit
+                    </td>
+
+                </tr>
+                </tbody>
+            </table>
+
+        </div>
+
+        <div class="empty"
+             th:if="${#lists.isEmpty(transactions)}">
+
+            <h3>No Transactions Yet</h3>
+
+            <p>
+                Your transaction records will appear here
+                when transactions are available.
+            </p>
+
+        </div>
+
+    </section>
+
+</main>
+
+<footer>
+    SmartBank : A real banking service
+</footer>
+
+</body>
+</html>

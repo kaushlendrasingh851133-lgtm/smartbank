@@ -1,0 +1,460 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Management | SmartBank</title>
+
+    <script>
+        (function () {
+            const theme = localStorage.getItem("adminTheme");
+            const isDark = theme !== null
+                ? theme === "dark"
+                : localStorage.getItem("smartbank_darkMode") === "true";
+
+            document.documentElement.classList.toggle("dark-mode", isDark);
+        })();
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #172033;
+            transition: background 0.25s ease, color 0.25s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+        }
+
+        .muted {
+            color: #667085;
+        }
+
+        .back,
+        button {
+            display: inline-block;
+            border: 0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            background: #173b76;
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .back:hover,
+        button:hover {
+            background: #2454a0;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+
+        .card,
+        .panel {
+            background: #fff;
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 3px 12px rgba(20, 40, 80, 0.06);
+            transition: background 0.25s ease, color 0.25s ease;
+        }
+
+        .number {
+            display: block;
+            font-size: 26px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .panel {
+            margin-bottom: 20px;
+        }
+
+        .search {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        input,
+        select {
+            min-width: 150px;
+            padding: 10px;
+            border: 1px solid #d0d5dd;
+            border-radius: 8px;
+            background: #fff;
+            color: #172033;
+            font-size: 14px;
+        }
+
+        input {
+            flex: 1;
+        }
+
+        input:focus,
+        select:focus {
+            outline: 2px solid #7ba5ed;
+            outline-offset: 1px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+        }
+
+        th,
+        td {
+            padding: 13px 10px;
+            text-align: left;
+            border-bottom: 1px solid #eaecf0;
+            vertical-align: middle;
+        }
+
+        th {
+            background: #f8fafc;
+        }
+
+        td form {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        td select {
+            min-width: 115px;
+        }
+
+        td button {
+            padding: 9px 10px;
+        }
+
+        .success {
+            color: #087443;
+            margin-bottom: 12px;
+        }
+
+        .error {
+            color: #b42318;
+            margin-bottom: 12px;
+        }
+
+        /* Dark Mode */
+        html.dark-mode body {
+            background: #0f172a;
+            color: #e5e7eb;
+        }
+
+        html.dark-mode .muted {
+            color: #aab6ca;
+        }
+
+        html.dark-mode .card,
+        html.dark-mode .panel {
+            background: #1e293b;
+            color: #e5e7eb;
+            border: 1px solid #334155;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        html.dark-mode th {
+            background: #273449;
+            color: #f1f5f9;
+        }
+
+        html.dark-mode td {
+            border-bottom-color: #334155;
+        }
+
+        html.dark-mode input,
+        html.dark-mode select {
+            background: #0f172a;
+            color: #e5e7eb;
+            border-color: #475569;
+        }
+
+        html.dark-mode input::placeholder {
+            color: #94a3b8;
+        }
+
+        html.dark-mode .back,
+        html.dark-mode button {
+            background: #315b9b;
+            color: #fff;
+        }
+
+        html.dark-mode .back:hover,
+        html.dark-mode button:hover {
+            background: #416fb5;
+        }
+
+        html.dark-mode .success {
+            color: #4ade80;
+        }
+
+        html.dark-mode .error {
+            color: #f87171;
+        }
+
+        @media (max-width: 800px) {
+            body {
+                padding: 14px;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 420px) {
+            .stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .card {
+                padding: 12px;
+            }
+
+            .number {
+                font-size: 22px;
+            }
+
+            .topbar .back {
+                width: 100%;
+                text-align: center;
+            }
+
+            .search input {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <div class="topbar">
+        <div>
+            <h1>Account Management</h1>
+            <div class="muted">
+                Manage customer accounts and verification
+            </div>
+        </div>
+
+        <a class="back" th:href="@{/admin/dashboard}">
+            ← Admin Dashboard
+        </a>
+    </div>
+
+    <div th:if="${successMessage}"
+         class="success"
+         th:text="${successMessage}">
+    </div>
+
+    <div th:if="${errorMessage}"
+         class="error"
+         th:text="${errorMessage}">
+    </div>
+
+    <!-- Account Statistics -->
+    <div class="stats">
+        <div class="card">
+            Total Accounts
+            <span class="number" th:text="${totalAccounts}">0</span>
+        </div>
+
+        <div class="card">
+            Pending Verification
+            <span class="number" th:text="${pendingVerification}">0</span>
+        </div>
+
+        <div class="card">
+            Verified
+            <span class="number" th:text="${verifiedAccounts}">0</span>
+        </div>
+
+        <div class="card">
+            Rejected
+            <span class="number" th:text="${rejectedAccounts}">0</span>
+        </div>
+    </div>
+
+    <!-- Search Accounts -->
+    <div class="panel">
+        <form class="search"
+              th:action="@{/admin/accounts}"
+              method="get">
+
+            <input type="text"
+                   name="search"
+                   placeholder="Search account, customer or email"
+                   th:value="${search}">
+
+            <button type="submit">Search</button>
+
+            <a class="back" th:href="@{/admin/accounts}">
+                Clear
+            </a>
+        </form>
+    </div>
+
+    <!-- Accounts Table -->
+    <div class="panel">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>Account Number</th>
+                    <th>Customer</th>
+                    <th>Email</th>
+                    <th>Type</th>
+                    <th>Balance</th>
+                    <th>Verification</th>
+                    <th>Account Status</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="account : ${accounts}">
+                    <td th:text="${account.accountNumber}">
+                        Account Number
+                    </td>
+
+                    <td th:text="${account.user.fullName}">
+                        Customer
+                    </td>
+
+                    <td th:text="${account.user.email}">
+                        Email
+                    </td>
+
+                    <td th:text="${account.accountType}">
+                        SAVINGS
+                    </td>
+
+                    <td th:text="${account.balance}">
+                        0.00
+                    </td>
+
+                    <!-- Verification Status -->
+                    <td>
+                        <form th:action="@{/admin/accounts/verification}"
+                              method="post">
+
+                            <input type="hidden"
+                                   name="accountId"
+                                   th:value="${account.id}">
+
+                            <select name="status">
+                                <option value="PENDING"
+                                        th:selected="${account.verificationStatus.name() == 'PENDING'}">
+                                    Pending
+                                </option>
+
+                                <option value="VERIFIED"
+                                        th:selected="${account.verificationStatus.name() == 'VERIFIED'}">
+                                    Verified
+                                </option>
+
+                                <option value="REJECTED"
+                                        th:selected="${account.verificationStatus.name() == 'REJECTED'}">
+                                    Rejected
+                                </option>
+                            </select>
+
+                            <button type="submit">Save</button>
+                        </form>
+                    </td>
+
+                    <!-- Account Status -->
+                    <td>
+                        <form th:action="@{/admin/accounts/status}"
+                              method="post">
+
+                            <input type="hidden"
+                                   name="accountId"
+                                   th:value="${account.id}">
+
+                            <select name="status">
+                                <option value="ACTIVE"
+                                        th:selected="${account.accountStatus.name() == 'ACTIVE'}">
+                                    Active
+                                </option>
+
+                                <option value="BLOCKED"
+                                        th:selected="${account.accountStatus.name() == 'BLOCKED'}">
+                                    Blocked
+                                </option>
+
+                                <option value="CLOSED"
+                                        th:selected="${account.accountStatus.name() == 'CLOSED'}">
+                                    Closed
+                                </option>
+                            </select>
+
+                            <button type="submit">Save</button>
+                        </form>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(accounts)}">
+                    <td colspan="7">No accounts found.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Sync theme changes made in another browser tab -->
+<script>
+    window.addEventListener("storage", function (event) {
+        if (event.key === "adminTheme" ||
+            event.key === "smartbank_darkMode") {
+
+            const theme = localStorage.getItem("adminTheme");
+            const isDark = theme !== null
+                ? theme === "dark"
+                : localStorage.getItem("smartbank_darkMode") === "true";
+
+            document.documentElement.classList.toggle("dark-mode", isDark);
+        }
+    });
+</script>
+
+</body>
+</html>

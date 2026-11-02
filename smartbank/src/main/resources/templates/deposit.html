@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Deposit Money | SmartBank</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .card {
+            max-width: 400px;
+            margin: 70px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px #00000015;
+        }
+
+        h1 {
+            color: #123c69;
+            text-align: center;
+        }
+
+        p {
+            color: #64748b;
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-top: 20px;
+        }
+
+        input {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 20px;
+            background: #123c69;
+            color: white;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+        }
+
+        .error {
+            color: #dc2626;
+            text-align: center;
+        }
+
+        a {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #123c69;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <h1>Deposit Money</h1>
+    <p>SmartBank Banking</p>
+
+    <div class="error"
+         th:if="${error}"
+         th:text="${error}">
+    </div>
+
+    <form th:action="@{/deposit}" method="post">
+
+        <label for="amount">Deposit Amount (₹)</label>
+
+        <input
+                type="number"
+                id="amount"
+                name="amount"
+                min="0.01"
+                max="1000000"
+                step="0.01"
+                placeholder="Enter amount"
+                required>
+
+        <button type="submit">Deposit Money</button>
+
+    </form>
+
+    <a th:href="@{/dashboard}">Back to Dashboard</a>
+
+</div>
+
+</body>
+</html>

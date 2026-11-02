@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Dashboard | SmartBank</title>
+
+    <!-- Load saved theme before rendering -->
+    <script>
+        (function () {
+            try {
+                const savedTheme = localStorage.getItem("adminTheme");
+
+                const isDark = savedTheme !== null
+                    ? savedTheme === "dark"
+                    : localStorage.getItem("smartbank_darkMode") === "true";
+
+                if (isDark) {
+                    document.documentElement.classList.add("dark-mode");
+                }
+            } catch (error) {
+                // Continue with light mode if storage is unavailable.
+            }
+        })();
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background: #f3f6fb;
+            color: #1e293b;
+            transition: background .2s, color .2s;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 250px;
+            background: #102d50;
+            color: white;
+            padding: 25px 16px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            font-size: 25px;
+            font-weight: bold;
+            padding: 0 12px 35px;
+        }
+
+        .brand span {
+            color: #56a5ff;
+        }
+
+        .admin-label {
+            color: #9bb2cc;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 0 12px 12px;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 13px 14px;
+            color: #d8e5f5;
+            text-decoration: none;
+            border-radius: 9px;
+            margin-bottom: 7px;
+            transition: .25s;
+            font-size: 14px;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: #24558a;
+            color: white;
+            transform: translateX(3px);
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding-top: 30px;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #496787;
+            border-radius: 8px;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: #b91c1c;
+            border-color: #b91c1c;
+        }
+
+        /* MAIN CONTENT */
+        .main {
+            flex: 1;
+            min-width: 0;
+            padding: 30px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .topbar h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .topbar p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .admin-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #00000008;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-weight: bold;
+        }
+
+        .admin-badge small {
+            display: block;
+            margin-top: 4px;
+            color: #64748b;
+        }
+
+        /* WELCOME CARD */
+        .welcome {
+            background: linear-gradient(120deg, #174a82, #2878c9);
+            padding: 28px;
+            border-radius: 16px;
+            color: white;
+            margin-bottom: 28px;
+            box-shadow: 0 8px 25px #174a8220;
+        }
+
+        .welcome h2 {
+            font-size: 23px;
+            margin-bottom: 10px;
+        }
+
+        .welcome p {
+            color: #e1efff;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        /* STATISTICS */
+        .section-title {
+            font-size: 20px;
+            margin-bottom: 18px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 22px;
+            border-radius: 14px;
+            box-shadow: 0 3px 15px #00000006;
+            transition: .25s;
+            border: 1px solid #edf1f7;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px #0000000c;
+        }
+
+        .stat-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            font-size: 22px;
+            margin-bottom: 18px;
+        }
+
+        .blue {
+            background: #dbeafe;
+        }
+
+        .green {
+            background: #dcfce7;
+        }
+
+        .orange {
+            background: #ffedd5;
+        }
+
+        .purple {
+            background: #f3e8ff;
+        }
+
+        .stat-card p {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 9px;
+        }
+
+        .stat-card h3 {
+            font-size: 28px;
+            color: #172b4d;
+        }
+
+        /* CONTENT GRID */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 22px;
+            margin-bottom: 28px;
+        }
+
+        .panel {
+            background: white;
+            padding: 24px;
+            border-radius: 14px;
+            border: 1px solid #edf1f7;
+            box-shadow: 0 3px 15px #00000006;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+
+        .panel-header h2 {
+            font-size: 18px;
+        }
+
+        .view-link {
+            text-decoration: none;
+            color: #1764c0;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .loan-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 17px 0;
+            border-bottom: 1px solid #edf0f5;
+        }
+
+        .loan-row:last-child {
+            border-bottom: none;
+        }
+
+        .loan-row strong {
+            font-size: 14px;
+        }
+
+        .loan-row p {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 5px;
+        }
+
+        .count {
+            background: #fff0d9;
+            color: #a65b00;
+            border-radius: 20px;
+            padding: 7px 11px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* NOTIFICATIONS */
+        .notification-panel {
+            background: white;
+            padding: 24px;
+            border-radius: 14px;
+            border: 1px solid #edf1f7;
+            box-shadow: 0 3px 15px #00000006;
+            margin-bottom: 30px;
+        }
+
+        .notification-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .notification-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 13px;
+            padding: 15px;
+            border: 1px solid #e8edf5;
+            border-radius: 10px;
+        }
+
+        .notification-icon {
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            border-radius: 10px;
+            font-size: 20px;
+            background: #dbeafe;
+        }
+
+        .notification-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notification-item h3 {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .notification-item p {
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .notification-item .view-link {
+            display: inline-block;
+            margin-top: 8px;
+        }
+
+        .notification-status {
+            font-size: 12px;
+            color: #64748b;
+            text-align: right;
+        }
+
+        .notification-empty {
+            color: #64748b;
+            font-size: 13px;
+            padding: 12px 0;
+            line-height: 1.6;
+        }
+
+        /* QUICK ACTIONS */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 15px;
+        }
+
+        .action-card {
+            display: block;
+            text-decoration: none;
+            color: #1e293b;
+            background: white;
+            border: 1px solid #e8edf5;
+            border-radius: 13px;
+            padding: 21px;
+            transition: .25s;
+        }
+
+        .action-card:hover {
+            border-color: #60a5fa;
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px #00000008;
+        }
+
+        .action-card .icon {
+            font-size: 25px;
+            margin-bottom: 14px;
+        }
+
+        .action-card h3 {
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .action-card p {
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .footer {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 12px;
+            padding-top: 35px;
+        }
+
+        /* DARK MODE */
+        html.dark-mode body {
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        html.dark-mode .main {
+            background: #0f172a;
+        }
+
+        html.dark-mode .topbar p,
+        html.dark-mode .stat-card p,
+        html.dark-mode .loan-row p,
+        html.dark-mode .action-card p {
+            color: #94a3b8;
+        }
+
+        html.dark-mode .admin-badge,
+        html.dark-mode .stat-card,
+        html.dark-mode .panel,
+        html.dark-mode .action-card,
+        html.dark-mode .notification-panel {
+            background: #1e293b;
+            color: #e2e8f0;
+            border-color: #334155;
+            box-shadow: none;
+        }
+
+        html.dark-mode .stat-card h3,
+        html.dark-mode .section-title,
+        html.dark-mode .panel-header h2,
+        html.dark-mode .loan-row strong,
+        html.dark-mode .action-card h3,
+        html.dark-mode .notification-item h3 {
+            color: #f1f5f9;
+        }
+
+        html.dark-mode .admin-badge small {
+            color: #94a3b8;
+        }
+
+        html.dark-mode .loan-row {
+            border-bottom-color: #334155;
+        }
+
+        html.dark-mode .view-link {
+            color: #60a5fa;
+        }
+
+        html.dark-mode .action-card:hover {
+            border-color: #60a5fa;
+        }
+
+        html.dark-mode .avatar {
+            background: #1d4ed8;
+            color: #fff;
+        }
+
+        html.dark-mode .count {
+            background: #47351d;
+            color: #fcd34d;
+        }
+
+        html.dark-mode .stat-icon.blue,
+        html.dark-mode .notification-icon {
+            background: #1e3a5f;
+        }
+
+        html.dark-mode .stat-icon.green {
+            background: #16452e;
+        }
+
+        html.dark-mode .stat-icon.orange {
+            background: #54351d;
+        }
+
+        html.dark-mode .stat-icon.purple {
+            background: #43285d;
+        }
+
+        html.dark-mode .notification-item {
+            border-color: #334155;
+        }
+
+        html.dark-mode .notification-item p,
+        html.dark-mode .notification-empty,
+        html.dark-mode .notification-status {
+            color: #94a3b8;
+        }
+
+        html.dark-mode .footer {
+            color: #94a3b8;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1100px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .actions-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 800px) {
+            .layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 18px;
+            }
+
+            .brand {
+                padding-bottom: 20px;
+            }
+
+            .sidebar nav {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 5px;
+            }
+
+            .nav-link {
+                margin: 0;
+            }
+
+            .sidebar-bottom {
+                margin-top: 18px;
+                padding-top: 0;
+            }
+
+            .main {
+                padding: 20px;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main {
+                padding: 15px;
+            }
+
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .topbar h1 {
+                font-size: 24px;
+            }
+
+            .stats-grid,
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .welcome {
+                padding: 22px;
+            }
+
+            .panel,
+            .notification-panel {
+                padding: 18px;
+            }
+
+            .notification-status {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            Smart<span>Bank</span>
+        </div>
+
+        <p class="admin-label">Administration</p>
+
+        <nav>
+            <a th:href="@{/admin/dashboard}" class="nav-link active">
+                🏠 Dashboard
+            </a>
+
+            <a th:href="@{/admin/customers}" class="nav-link">
+                👥 Customers
+            </a>
+
+            <a th:href="@{/admin/accounts}" class="nav-link">
+                🏦 Accounts
+            </a>
+
+            <a th:href="@{/admin/loans}" class="nav-link">
+                💳 Loan Management
+            </a>
+
+            <a th:href="@{/admin/transactions}" class="nav-link">
+                💸 Transactions
+            </a>
+
+            <a th:href="@{/admin/reports-analytics}" class="nav-link">
+                📊 Reports
+            </a>
+
+            <!-- FD Details -->
+            <a th:href="@{/admin/fixed-deposits}" class="nav-link">
+                🏦 FD Details
+            </a>
+
+            <!-- Loan Repayment Details -->
+            <a th:href="@{/admin/loan-repayments}" class="nav-link">
+                💳 Loan Repayment Details
+            </a>
+
+            <!-- Help & Support -->
+            <a th:href="@{/admin/help-requests}" class="nav-link">
+                ❔ Help &amp; Support
+            </a>
+
+            <a th:href="@{/admin/settings}" class="nav-link">
+                ⚙️ Settings
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="logout-btn">
+                    ↪ Logout
+                </button>
+            </form>
+        </div>
+
+    </aside>
+
+    <!-- MAIN CONTENT -->
+
+    <main class="main">
+
+        <!-- TOPBAR -->
+
+        <header class="topbar">
+            <div>
+                <h1>Admin Dashboard</h1>
+                <p>Monitor and manage your SmartBank operations.</p>
+            </div>
+
+            <div class="admin-badge">
+                <div class="avatar">A</div>
+                <div>
+                    <strong>Administrator</strong>
+                    <small>System Admin</small>
+                </div>
+            </div>
+        </header>
+
+        <!-- WELCOME -->
+
+        <section class="welcome">
+            <h2>Welcome to SmartBank Admin Panel 👋</h2>
+
+            <p>
+                Manage customers, monitor accounts, review loan
+                applications and oversee banking operations
+                from one place.
+            </p>
+        </section>
+
+        <!-- STATISTICS -->
+
+        <h2 class="section-title">Banking Overview</h2>
+
+        <section class="stats-grid">
+
+            <div class="stat-card">
+                <div class="stat-icon blue">👥</div>
+                <p>Total Customers</p>
+                <h3 th:text="${totalCustomers != null ? totalCustomers : '—'}">—</h3>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon green">🏦</div>
+                <p>Total Accounts</p>
+                <h3 th:text="${totalAccounts != null ? totalAccounts : '—'}">—</h3>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon orange">📋</div>
+                <p>Pending Loans</p>
+                <h3 th:text="${pendingLoans != null ? pendingLoans : '—'}">—</h3>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon purple">💸</div>
+                <p>Total Transactions</p>
+                <h3 th:text="${totalTransactions != null ? totalTransactions : '—'}">—</h3>
+            </div>
+
+        </section>
+
+        <!-- NOTIFICATIONS CONTROLLED BY SETTINGS -->
+
+        <section class="notification-panel">
+
+            <div class="panel-header">
+                <h2>🔔 Admin Notifications</h2>
+
+                <span class="notification-status" id="notificationStatus">
+                    Loading preferences...
+                </span>
+            </div>
+
+            <div class="notification-list" id="notificationList">
+                <p class="notification-empty">
+                    Loading notifications...
+                </p>
+            </div>
+
+            <p style="margin-top: 16px; font-size: 12px; color: #64748b;">
+                Manage alert preferences from
+                <a th:href="@{/admin/settings}" class="view-link">
+                    Admin Settings
+                </a>.
+            </p>
+
+        </section>
+
+        <!-- LOANS AND QUICK ACTIONS -->
+
+        <section class="content-grid">
+
+            <div class="panel">
+
+                <div class="panel-header">
+                    <h2>Loan Applications</h2>
+
+                    <a th:href="@{/admin/loans}" class="view-link">
+                        View All →
+                    </a>
+                </div>
+
+                <div class="loan-row">
+                    <div>
+                        <strong>Pending Applications</strong>
+                        <p>Applications waiting for review</p>
+                    </div>
+
+                    <span class="count"
+                          th:text="${pendingLoans != null ? pendingLoans : '—'}">—</span>
+                </div>
+
+                <div class="loan-row">
+                    <div>
+                        <strong>Approved Loans</strong>
+                        <p>Applications approved by admin</p>
+                    </div>
+
+                    <span class="count"
+                          th:text="${approvedLoans != null ? approvedLoans : '—'}">—</span>
+                </div>
+
+                <div class="loan-row">
+                    <div>
+                        <strong>Rejected Loans</strong>
+                        <p>Applications not approved</p>
+                    </div>
+
+                    <span class="count"
+                          th:text="${rejectedLoans != null ? rejectedLoans : '—'}">—</span>
+                </div>
+
+            </div>
+
+            <div class="panel">
+
+                <div class="panel-header">
+                    <h2>Quick Actions</h2>
+                </div>
+
+                <div class="loan-row">
+                    <div>
+                        <strong>Manage Customers</strong>
+                        <p>View and search registered users</p>
+                    </div>
+
+                    <a th:href="@{/admin/customers}" class="view-link">
+                        Open →
+                    </a>
+                </div>
+
+                <div class="loan-row">
+                    <div>
+                        <strong>Review Loans</strong>
+                        <p>Review pending loan applications</p>
+                    </div>
+
+                    <a th:href="@{/admin/loans}" class="view-link">
+                        Open →
+                    </a>
+                </div>
+
+                <div class="loan-row">
+                    <div>
+                        <strong>Manage Accounts</strong>
+                        <p>Access account management</p>
+                    </div>
+
+                    <a th:href="@{/admin/accounts}" class="view-link">
+                        Open →
+                    </a>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- MANAGEMENT CARDS -->
+
+        <h2 class="section-title">Management Center</h2>
+
+        <section class="actions-grid">
+
+            <a th:href="@{/admin/customers}" class="action-card">
+                <div class="icon">👥</div>
+                <h3>Customer Management</h3>
+                <p>View registered customers and search their details.</p>
+            </a>
+
+            <a th:href="@{/admin/accounts}" class="action-card">
+                <div class="icon">🏦</div>
+                <h3>Account Management</h3>
+                <p>Manage bank accounts and account access.</p>
+            </a>
+
+            <a th:href="@{/admin/loans}" class="action-card">
+                <div class="icon">💳</div>
+                <h3>Loan Management</h3>
+                <p>Review applications and manage approval decisions.</p>
+            </a>
+
+            <a th:href="@{/admin/transactions}" class="action-card">
+                <div class="icon">💸</div>
+                <h3>Transactions</h3>
+                <p>Review transaction records and banking activity.</p>
+            </a>
+
+            <a th:href="@{/admin/reports-analytics}" class="action-card">
+                <div class="icon">📊</div>
+                <h3>Reports &amp; Analytics</h3>
+                <p>Review banking statistics and reports.</p>
+            </a>
+
+            <a th:href="@{/admin/settings}" class="action-card">
+                <div class="icon">⚙️</div>
+                <h3>Admin Settings</h3>
+                <p>Access administrative configuration options.</p>
+            </a>
+
+        </section>
+
+        <footer class="footer">
+            © 2026 SmartBank. All rights reserved.
+        </footer>
+
+    </main>
+
+</div>
+
+<script>
+    // Apply the saved admin theme.
+    function applyDashboardTheme() {
+        try {
+            const savedTheme = localStorage.getItem("adminTheme");
+
+            const isDark = savedTheme !== null
+                ? savedTheme === "dark"
+                : localStorage.getItem("smartbank_darkMode") === "true";
+
+            document.documentElement.classList.toggle("dark-mode", isDark);
+        } catch (error) {
+            console.warn("Could not apply the saved theme.", error);
+        }
+    }
+
+    // Read a dashboard statistic safely.
+    function getDashboardCount(selector) {
+        const element = document.querySelector(selector);
+
+        if (!element) {
+            return null;
+        }
+
+        const value = element.textContent.trim();
+
+        if (!/^\d+$/.test(value)) {
+            return null;
+        }
+
+        return Number(value);
+    }
+
+    // Read notification preferences saved by settings.html.
+    function isNotificationEnabled(key) {
+        try {
+            return localStorage.getItem("smartbank_" + key) === "true";
+        } catch (error) {
+            return false;
+        }
+    }
+
+    // Create notification elements safely.
+    function createNotification(notification) {
+        const item = document.createElement("div");
+        item.className = "notification-item";
+
+        const icon = document.createElement("div");
+        icon.className = "notification-icon";
+        icon.textContent = notification.icon;
+
+        const content = document.createElement("div");
+        content.className = "notification-content";
+
+        const title = document.createElement("h3");
+        title.textContent = notification.title;
+
+        const message = document.createElement("p");
+        message.textContent = notification.message;
+
+        const link = document.createElement("a");
+        link.className = "view-link";
+        link.href = notification.link;
+        link.textContent = notification.linkText;
+
+        content.appendChild(title);
+        content.appendChild(message);
+        content.appendChild(link);
+
+        item.appendChild(icon);
+        item.appendChild(content);
+
+        return item;
+    }
+
+    // Display notifications according to saved settings.
+    function loadDashboardNotifications() {
+        const list = document.getElementById("notificationList");
+        const status = document.getElementById("notificationStatus");
+
+        if (!list || !status) {
+            return;
+        }
+
+        list.replaceChildren();
+
+        const accountAlerts = isNotificationEnabled("accountAlerts");
+        const loanAlerts = isNotificationEnabled("loanAlerts");
+        const transactionAlerts = isNotificationEnabled("transactionAlerts");
+
+        const totalAccounts = getDashboardCount(
+            ".stats-grid .stat-card:nth-child(2) h3"
+        );
+
+        const pendingLoans = getDashboardCount(
+            ".stats-grid .stat-card:nth-child(3) h3"
+        );
+
+        const totalTransactions = getDashboardCount(
+            ".stats-grid .stat-card:nth-child(4) h3"
+        );
+
+        const enabledCount = [
+            accountAlerts,
+            loanAlerts,
+            transactionAlerts
+        ].filter(Boolean).length;
+
+        const notifications = [];
+
+        // Account alerts.
+        if (accountAlerts && totalAccounts !== null && totalAccounts > 0) {
+            notifications.push({
+                icon: "🏦",
+                title: "Account Overview",
+                message: "Your dashboard currently shows " +
+                    totalAccounts + " bank account(s).",
+                link: "/admin/accounts",
+                linkText: "View Accounts →"
+            });
+        }
+
+        // Loan alerts.
+        if (loanAlerts && pendingLoans !== null && pendingLoans > 0) {
+            notifications.push({
+                icon: "💳",
+                title: "Pending Loan Applications",
+                message: pendingLoans +
+                    " loan application(s) are waiting for review.",
+                link: "/admin/loans",
+                linkText: "Review Loans →"
+            });
+        }
+
+        // Transaction alerts.
+        if (
+            transactionAlerts &&
+            totalTransactions !== null &&
+            totalTransactions > 0
+        ) {
+            notifications.push({
+                icon: "💸",
+                title: "Transaction Overview",
+                message: "Your dashboard currently shows " +
+                    totalTransactions + " transaction(s).",
+                link: "/admin/transactions",
+                linkText: "View Transactions →"
+            });
+        }
+
+        status.textContent = enabledCount + " of 3 alert types enabled";
+
+        if (enabledCount === 0) {
+            const empty = document.createElement("p");
+            empty.className = "notification-empty";
+            empty.textContent =
+                "All notification types are disabled. Enable Account Alerts, Loan Alerts or Transaction Alerts in Admin Settings.";
+
+            list.appendChild(empty);
+            return;
+        }
+
+        if (notifications.length === 0) {
+            const empty = document.createElement("p");
+            empty.className = "notification-empty";
+            empty.textContent =
+                "No matching alerts to display. The selected alert types are enabled, but the dashboard has no positive counts for them.";
+
+            list.appendChild(empty);
+            return;
+        }
+
+        notifications.forEach(function (notification) {
+            list.appendChild(createNotification(notification));
+        });
+    }
+
+    // Synchronize changes made in another tab.
+    window.addEventListener("storage", function (event) {
+        if (
+            event.key === "adminTheme" ||
+            event.key === "smartbank_darkMode" ||
+            event.key === null
+        ) {
+            applyDashboardTheme();
+        }
+
+        if (
+            event.key === "smartbank_accountAlerts" ||
+            event.key === "smartbank_loanAlerts" ||
+            event.key === "smartbank_transactionAlerts" ||
+            event.key === null
+        ) {
+            loadDashboardNotifications();
+        }
+    });
+
+    // Refresh preferences when the dashboard is opened or revisited.
+    window.addEventListener("pageshow", function () {
+        applyDashboardTheme();
+        loadDashboardNotifications();
+    });
+
+    // Initial page load.
+    applyDashboardTheme();
+    loadDashboardNotifications();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,376 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Loan Repayment | SmartBank</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: Arial, sans-serif;
+            background: #f3f6fb;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 1150px;
+            margin: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 27px;
+        }
+
+        .subtitle {
+            margin: 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 18px;
+            border-radius: 8px;
+            background: #1d4ed8;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            border: 1px solid #1d4ed8;
+            cursor: pointer;
+            position: relative;
+            z-index: 5;
+            pointer-events: auto;
+            transition: background 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: #1e40af;
+        }
+
+        .back-btn:focus-visible {
+            outline: 3px solid #93c5fd;
+            outline-offset: 3px;
+        }
+
+        .card {
+            background: #ffffff;
+            padding: 22px;
+            border-radius: 14px;
+            box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+            margin-bottom: 22px;
+        }
+
+        .card h2 {
+            margin: 0 0 8px;
+            font-size: 19px;
+        }
+
+        .note {
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            padding: 13px 16px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+            font-size: 14px;
+        }
+
+        .success {
+            color: #166534;
+            background: #dcfce7;
+        }
+
+        .error {
+            color: #991b1b;
+            background: #fee2e2;
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+        }
+
+        th, td {
+            padding: 14px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #475569;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .pending {
+            color: #92400e;
+            background: #fef3c7;
+        }
+
+        .paid {
+            color: #166534;
+            background: #dcfce7;
+        }
+
+        .overdue {
+            color: #991b1b;
+            background: #fee2e2;
+        }
+
+        .pay-btn {
+            border: none;
+            padding: 9px 13px;
+            border-radius: 7px;
+            background: #15803d;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .pay-btn:hover {
+            background: #166534;
+        }
+
+        .paid-label {
+            color: #15803d;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 35px 15px;
+            color: #64748b;
+        }
+
+        .empty h3 {
+            color: #334155;
+            margin-bottom: 8px;
+        }
+
+        .footer-note {
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.6;
+            margin-top: 18px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 14px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 23px;
+            }
+
+            .back-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+
+        <div>
+            <h1>Loan Repayment</h1>
+
+            <p class="subtitle">
+                Welcome,
+                <span th:text="${customerName}">Customer</span>
+            </p>
+        </div>
+
+        <!-- Dashboard link -->
+        <a class="back-btn" th:href="@{/dashboard}">
+            <span aria-hidden="true">&#8592;</span>
+            Back to Dashboard
+        </a>
+
+    </div>
+
+    <!-- Success message -->
+    <div th:if="${success}"
+         class="message success"
+         th:text="${success}">
+    </div>
+
+    <!-- Error message -->
+    <div th:if="${error}"
+         class="message error"
+         th:text="${error}">
+    </div>
+
+    <div class="card">
+
+        <h2>Monthly EMI Schedule</h2>
+
+        <p class="note">
+            View your monthly installment amount, due date,
+            paid amount and payment status.
+        </p>
+
+        <!-- No repayment records -->
+        <div th:if="${#lists.isEmpty(repayments)}"
+             class="empty">
+
+            <h3>No Repayment Schedule Available</h3>
+
+            <p>
+                Your schedule will appear here after your loan
+                application is approved and installments are generated.
+            </p>
+
+        </div>
+
+        <!-- Repayment table -->
+        <div class="table-wrap"
+             th:unless="${#lists.isEmpty(repayments)}">
+
+            <table>
+
+                <thead>
+                <tr>
+                    <th>Installment</th>
+                    <th>Loan Type</th>
+                    <th>Due Date</th>
+                    <th>EMI Amount</th>
+                    <th>Paid Amount</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+                <tr th:each="repayment : ${repayments}">
+
+                    <td th:text="${repayment.installmentNumber}">
+                        1
+                    </td>
+
+                    <td th:text="${repayment.loan.loanType}">
+                        PERSONAL
+                    </td>
+
+                    <td th:text="${repayment.dueDate}">
+                        2026-11-17
+                    </td>
+
+                    <td>
+                        ₹<span th:text="${#numbers.formatDecimal(
+                            repayment.emiAmount, 1, 2)}">0.00</span>
+                    </td>
+
+                    <td>
+                        ₹<span th:text="${#numbers.formatDecimal(
+                            repayment.paidAmount, 1, 2)}">0.00</span>
+                    </td>
+
+                    <td>
+                        <span class="status"
+                              th:classappend="${repayment.paymentStatus.name() == 'PAID'}
+                                  ? ' paid'
+                                  : (${repayment.paymentStatus.name() == 'OVERDUE'}
+                                      ? ' overdue' : ' pending')"
+                              th:text="${repayment.paymentStatus}">
+                            PENDING
+                        </span>
+                    </td>
+
+                    <td>
+
+                        <form th:if="${repayment.paymentStatus.name() != 'PAID'}"
+                              th:action="@{/loan-repayment/{id}/pay(id=${repayment.id})}"
+                              method="post">
+
+                            <input type="hidden"
+                                   th:name="${_csrf.parameterName}"
+                                   th:value="${_csrf.token}">
+
+                            <button type="submit"
+                                    class="pay-btn"
+                                    onclick="return confirm('This action will record the EMI as paid. Continue?');">
+                                Pay EMI
+                            </button>
+
+                        </form>
+
+                        <span th:if="${repayment.paymentStatus.name() == 'PAID'}"
+                              class="paid-label">
+                            Paid
+                        </span>
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+            </table>
+
+        </div>
+
+        <p class="footer-note">
+            Pay EMI records the installment as paid.
+        </p>
+
+    </div>
+
+</div>
+
+</body>
+</html>

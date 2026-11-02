@@ -1,0 +1,442 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SmartBank | Apply for Loan</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f6fc;
+            margin: 0;
+            padding: 25px;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 14px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px #0000000c;
+        }
+
+        h1, h2 {
+            color: #123b70;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 7px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            background: white;
+            color: #1e293b;
+        }
+
+        button {
+            background: #1459a6;
+            color: white;
+            border: 0;
+            padding: 12px 20px;
+            border-radius: 7px;
+            cursor: pointer;
+            margin-top: 18px;
+        }
+
+        button:hover {
+            background: #0d417e;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 7px;
+            margin-bottom: 15px;
+        }
+
+        .success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .calculator {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8fafc;
+            border: 1px solid #dbeafe;
+            border-radius: 12px;
+        }
+
+        .calculator h2 {
+            margin-top: 0;
+        }
+
+        .interest-rate {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 7px;
+            background: #dbeafe;
+            color: #123b70;
+            font-weight: bold;
+            margin-bottom: 18px;
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .result-box {
+            padding: 16px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 9px;
+        }
+
+        .result-label {
+            display: block;
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+
+        .result-value {
+            font-size: 21px;
+            font-weight: bold;
+            color: #123b70;
+            overflow-wrap: anywhere;
+        }
+
+        .emi-box {
+            grid-column: 1 / -1;
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+
+        .emi-box .result-value {
+            color: #1459a6;
+            font-size: 27px;
+        }
+
+        .calculator-note {
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #eff6ff;
+        }
+
+        a {
+            color: #1459a6;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+
+            .card {
+                padding: 17px;
+            }
+
+            .form-grid,
+            .calculator-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .emi-box {
+                grid-column: auto;
+            }
+
+            .result-value {
+                font-size: 19px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <div class="card">
+        <h1>SmartBank Loan Application</h1>
+
+        <p>
+            Welcome,
+            <strong th:text="${customerName}">Customer</strong>
+        </p>
+
+        <div th:if="${success}" class="message success"
+             th:text="${success}"></div>
+
+        <div th:if="${error}" class="message error"
+             th:text="${error}"></div>
+
+        <form th:action="@{/loans/apply}" method="post"
+              id="loanForm">
+
+            <div class="form-grid">
+
+                <div>
+                    <label for="loanType">Loan Type</label>
+                    <select id="loanType" name="loanType" required>
+                        <option value="">Select Loan Type</option>
+                        <option value="PERSONAL">Personal Loan</option>
+                        <option value="HOME">Home Loan</option>
+                        <option value="EDUCATION">Education Loan</option>
+                        <option value="VEHICLE">Vehicle Loan</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="loanAmount">Loan Amount (₹)</label>
+                    <select id="loanAmount" name="loanAmount" required>
+                        <option value="">Select Loan Amount</option>
+                        <option value="100000">₹1,00,000</option>
+                        <option value="200000">₹2,00,000</option>
+                        <option value="300000">₹3,00,000</option>
+                        <option value="400000">₹4,00,000</option>
+                        <option value="500000">₹5,00,000</option>
+                        <option value="600000">₹6,00,000</option>
+                        <option value="700000">₹7,00,000</option>
+                        <option value="800000">₹8,00,000</option>
+                        <option value="900000">₹9,00,000</option>
+                        <option value="1000000">₹10,00,000</option>
+                        <option value="1100000">₹11,00,000</option>
+                        <option value="1200000">₹12,00,000</option>
+                        <option value="1300000">₹13,00,000</option>
+                        <option value="1400000">₹14,00,000</option>
+                        <option value="1500000">₹15,00,000</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="monthlyIncome">Monthly Income (₹)</label>
+                    <input id="monthlyIncome" name="monthlyIncome"
+                           type="number" min="1" max="100000000"
+                           step="0.01" required>
+                </div>
+
+                <div>
+                    <label for="durationMonths">Duration</label>
+                    <select id="durationMonths" name="durationMonths"
+                            required>
+                        <option value="">Select Duration</option>
+                        <option value="6">6 Months</option>
+                        <option value="12">12 Months</option>
+                        <option value="24">24 Months</option>
+                        <option value="36">36 Months</option>
+                        <option value="48">48 Months</option>
+                        <option value="60">60 Months</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="calculator">
+                <h2>Loan Interest Calculator</h2>
+
+                <div class="interest-rate">
+                    Interest Rate: 10% per annum
+                </div>
+
+                <div class="calculator-grid">
+
+                    <div class="result-box">
+                        <span class="result-label">Loan Amount</span>
+                        <span class="result-value"
+                              id="displayPrincipal">₹0</span>
+                    </div>
+
+                    <div class="result-box">
+                        <span class="result-label">Loan Duration</span>
+                        <span class="result-value"
+                              id="displayDuration">--</span>
+                    </div>
+
+                    <div class="result-box">
+                        <span class="result-label">Total Interest</span>
+                        <span class="result-value"
+                              id="displayInterest">₹0</span>
+                    </div>
+
+                    <div class="result-box">
+                        <span class="result-label">Total Repayment</span>
+                        <span class="result-value"
+                              id="displayTotal">₹0</span>
+                    </div>
+
+                    <div class="result-box emi-box">
+                        <span class="result-label">Estimated Monthly EMI</span>
+                        <span class="result-value"
+                              id="displayEmi">₹0</span>
+                    </div>
+
+                </div>
+
+                <p class="calculator-note">
+                    Estimates use a fixed annual interest rate of 10%
+                    and the reducing-balance EMI method. Actual loan terms
+                    and repayments may depend on bank approval and the
+                    terms configured by SmartBank.
+                </p>
+            </div>
+
+            <button type="submit">Submit Loan Application</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>My Loan Applications</h2>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>Application ID</th>
+                    <th>Loan Type</th>
+                    <th>Amount</th>
+                    <th>Duration</th>
+                    <th>Applied At</th>
+                    <th>Status</th>
+                    <th>Admin Remark</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="loan : ${loans}">
+                    <td th:text="${loan.id}"></td>
+                    <td th:text="${loan.loanType}"></td>
+                    <td th:text="${loan.loanAmount}"></td>
+                    <td th:text="${loan.durationMonths + ' months'}"></td>
+                    <td th:text="${#temporals.format(loan.appliedAt, 'dd-MM-yyyy HH:mm')}"></td>
+                    <td th:text="${loan.status}"></td>
+                    <td th:text="${loan.adminRemark != null ? loan.adminRemark : '-'}"></td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(loans)}">
+                    <td colspan="7">You have not applied for a loan yet.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p><a th:href="@{/dashboard}">Back to Dashboard</a></p>
+    </div>
+
+</div>
+
+<script>
+    const loanAmount = document.getElementById("loanAmount");
+    const durationMonths = document.getElementById("durationMonths");
+
+    const displayPrincipal = document.getElementById("displayPrincipal");
+    const displayDuration = document.getElementById("displayDuration");
+    const displayInterest = document.getElementById("displayInterest");
+    const displayTotal = document.getElementById("displayTotal");
+    const displayEmi = document.getElementById("displayEmi");
+
+    const annualInterestRate = 10;
+
+    const currencyFormatter = new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 2
+    });
+
+    function formatCurrency(amount) {
+        return currencyFormatter.format(amount);
+    }
+
+    function calculateLoan() {
+        const principal = Number(loanAmount.value);
+        const months = Number(durationMonths.value);
+
+        if (!principal || !months) {
+            displayPrincipal.textContent = principal
+                ? formatCurrency(principal) : "₹0";
+
+            displayDuration.textContent = months
+                ? months + " Months" : "--";
+
+            displayInterest.textContent = "₹0";
+            displayTotal.textContent = "₹0";
+            displayEmi.textContent = "₹0";
+            return;
+        }
+
+        const monthlyRate = annualInterestRate / 100 / 12;
+
+        // Reducing-balance EMI formula
+        const emi = principal * monthlyRate *
+            Math.pow(1 + monthlyRate, months) /
+            (Math.pow(1 + monthlyRate, months) - 1);
+
+        const totalRepayment = emi * months;
+        const totalInterest = totalRepayment - principal;
+
+        displayPrincipal.textContent = formatCurrency(principal);
+        displayDuration.textContent = months + " Months";
+        displayInterest.textContent = formatCurrency(totalInterest);
+        displayTotal.textContent = formatCurrency(totalRepayment);
+        displayEmi.textContent = formatCurrency(emi);
+    }
+
+    loanAmount.addEventListener("change", calculateLoan);
+    durationMonths.addEventListener("change", calculateLoan);
+
+    calculateLoan();
+</script>
+
+</body>
+</html>
